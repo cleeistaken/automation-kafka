@@ -1,0 +1,44 @@
+---
+  # this test will ensure thousands of directories get created, flushed to disk and then 
+  # get deleted
+  # 
+  # relevant grafan graph: Log size per Broker 
+- name: Delete Stress Test
+  hosts: localhost
+  connection: local
+  vars:
+    bootstrap: 172.17.3.101:9092
+    topic: stresstest
+    partitions: 1000
+    replication: 1
+    segment_bytes: 10485760
+    flush_ms: 120000 # flush to disk every 2 mins
+  tasks:
+    - name: check testtopic
+      shell: 
+        cmd: >-
+          kafka-topics --bootstrap-server {{bootstrap}} 
+          --list --topic {{ topic }}
+      register: topiclist
+    - name: Create topic
+      command: >-
+        kafka-topics --bootstrap-server {{ bootstrap }}
+        --create --topic {{ topic }}
+        --replication-factor {{ replication }}
+        --partitions {{ partitions }}
+        --config segment.bytes={{ segment_bytes }}
+        --config flush.ms={{ flush_ms }}
+      when: topiclist.stdout != topiclist 
+
+    - name: Send Data
+      command: >-
+        kafka-producer-perf-test --topic {{ topic }}
+        --producer-props bootstrap.servers={{ bootstrap }}
+        --throughput -1
+        --num-records 9518984
+        --record-size 9024
+
+# After this runs, run this to delete the above segments
+# kafka-configs --zookeeper 172.20.10.14:2181 --alter --entity-type topics --entity-name stresstest --add-config retention.bytes=1024
+# Delete the topic after the test is over
+# kafka-topics --bootstrap-server 172.20.10.10:9092 --topic stresstest --delete

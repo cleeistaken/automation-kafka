@@ -1,0 +1,157 @@
+---
+- name: Install Prerequisites
+  hosts: all
+  tasks:
+    - name: install epel-release
+      yum:
+        name: epel-release
+        state: latest
+    - name: install python packages
+      yum:
+        name: 
+          - python-pip
+          - python-setuptools
+        state: latest
+    - name: update pip
+      pip:
+        name:
+          - pip
+        state: latest
+  
+    - name: update setuptools
+      pip:
+        name:
+          - setuptools
+        state: latest
+   
+    - name: install selinux
+      pip:
+        name: selinux
+
+- name: install node_exporter on hosts
+  hosts: all
+  tags: nodexporter
+  roles:
+    - cloudalchemy.node-exporter
+
+- name: Tools Provisioning
+  hosts: tools
+  tasks:
+    - name: Open ports on tools host
+      tags:
+        - ports
+      seport:
+        ports: "{{ item }}"
+        proto: tcp
+        setype: http_port_t
+        state: present
+      with_items:
+        - 3000
+        - 9090
+        - 5044
+        - 5601
+      when:
+        - ansible_version.full is version_compare('2.4', '>=')
+        - ansible_selinux.status == "enabled"
+    - import_role:
+        name: confluent.common
+    - import_role:
+        name: confluent.variables_handlers
+    - name: Install the Kafka Broker Packages
+      yum:
+        name: "{{item}}{{confluent_package_redhat_suffix}}"
+        state: latest
+      loop:
+        - confluent-common
+        - confluent-server
+      when: ansible_os_family == "RedHat"
+    - name: Install the Kafka Broker Packages
+      apt:
+        name: "{{item}}{{confluent_package_debian_suffix}}"
+      loop:
+        - confluent-common
+        - confluent-server
+      when: ansible_os_family == "Debian"
+ 
+    - name: set kafka prometheus hosts
+      set_fact: kafka_item="{{ item }}:{{ kafka_broker_jmxexporter_port }}"
+      with_items: "{{ groups['kafka_broker'] }}"
+      register: kafka_result
+    - name: make a list
+      set_fact: kafka_jmx_hosts="{{ kafka_result.results | map(attribute='ansible_facts.kafka_item') | list }}"
+    
+    - debug: var=kafka_jmx_hosts
+    - name: set zookeeper prometheus hosts
+      set_fact: zookeeper_item="{{ item }}:{{ zookeeper_jmxexporter_port }}"
+      with_items: "{{ groups['zookeeper'] }}"
+      register: zookeeper_result
+    - name: make a list
+      set_fact: zookeeper_jmx_hosts="{{ zookeeper_result.results | map(attribute='ansible_facts.zookeeper_item') | list }}"
+
+    - include_role:
+        name: cloudalchemy.prometheus
+      vars:
+        prometheus_scrape_configs:
+          - job_name: 'kafka'
+            static_configs:
+            - targets: "{{ kafka_jmx_hosts }}"
+              labels:
+                env: 'perf'
+          - job_name: 'zookeeper'
+            static_configs:
+            - targets: "{{ zookeeper_jmx_hosts }}"
+              labels:
+                env: 'perf'
+          - job_name: 'node'
+            static_configs:
+              - targets: 
+                  "{{ groups['all'] | map('extract', hostvars, ['inventory_hostname']) | map('regex_replace', '$', ':9100') | list }}"
+                labels:
+                  env: 'perf'
+    - include_role:
+        name: cloudalchemy.grafana
+      vars:
+        grafana_security:
+          admin_user: confluent
+          admin_password: confluent
+      tags: "grafana"
+    
+    - include_role:
+        name: elastic.elasticsearch
+      tags: "elasticsearch"
+      vars:
+        es_version: 7.6.2
+    - include_role:
+        name: geerlingguy.logstash
+    - include_role:
+        name: geerlingguy.kibana
+      tags: 
+        - elasticsearch
+        - kibana
+    
+- name: Install filebeats
+  hosts:
+    - kafka_broker
+    - zookeeper
+    - kafka_connect
+    - control_center
+  tags:
+    - filebeat
+  tasks:
+    - include_role:
+        name: geerlingguy.filebeat
+      vars:
+        filebeat_output_logstash_enabled: true
+        filebeat_output_logstash_hosts:
+          - "{{ hostvars[groups['tools'][0]]['inventory_hostname']}}:5044"
+        filebeat_output_elasticsearch_enabled: false
+        filebeat_inputs:
+          - type: log
+            paths:
+              - "/var/log/*.log"
+              - "/var/log/kafka/*.log"
+              - "/var/log/kafka/*.current"
+              - "/var/log/zookeeper/*.log"
+              - "/var/log/zookeeper/*.current"
+
+        

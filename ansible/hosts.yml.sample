@@ -1,0 +1,88 @@
+all:
+  vars:
+    ansible_connection: ssh
+    ansible_user: confluent
+    ansible_sudo_pass: confluent
+    ansible_become: true
+    ansible_ssh_private_key_file: ~/.ssh/id_rsa
+
+tools:
+  hosts:
+    10.0.0.10:
+
+control_center:
+  hosts:
+    10.0.0.100:
+
+kafka_connect:
+  hosts:
+    10.0.0.111:
+    10.0.0.112:
+
+zookeeper:
+  hosts:
+    10.0.0.121:
+      zookeeper_id: 1
+    10.0.0.122:
+      zookeeper_id: 2
+    10.0.0.123:
+      zookeeper_id: 3
+
+kafka_broker:
+  hosts:
+    10.0.0.201:
+      kafka_broker:
+        datadir:
+          - /var/lib/kafka/data0
+          - /var/lib/kafka/data1
+        properties:
+          broker.rack: rack_1
+          default.replication.factor: 3
+      broker_id: 1
+      kafka_broker_custom_listeners:
+        internal:
+          hostname: 10.0.1.201
+        external:
+          hostname: 10.0.0.201
+    10.0.0.202:
+      kafka_broker:
+        datadir:
+          - /var/lib/kafka/data0
+          - /var/lib/kafka/data1
+        properties:
+          broker.rack: rack_1
+          default.replication.factor: 3
+      broker_id: 2
+      kafka_broker_custom_listeners:
+        internal:
+          hostname: 10.0.1.202
+        external:
+          hostname: 10.0.1.202
+    10.0.0.203:
+      kafka_broker:
+        datadir:
+          - /var/lib/kafka/data0
+          - /var/lib/kafka/data1
+        properties:
+          broker.rack: rack_1
+          default.replication.factor: 3
+      broker_id: 3
+      kafka_broker_custom_listeners:
+        internal:
+          hostname: 10.0.1.203
+        external:
+          hostname: 10.0.0.203
+    10.156.167.154:
+      kafka_broker:
+        datadir:
+          - /var/lib/kafka/data0
+          - /var/lib/kafka/data1
+        properties:
+          broker.rack: rack_1
+          default.replication.factor: 3
+      broker_id: 4
+      kafka_broker_custom_listeners:
+        internal:
+          hostname: 10.0.1.204
+        external:
+          hostname: 10.0.0.204

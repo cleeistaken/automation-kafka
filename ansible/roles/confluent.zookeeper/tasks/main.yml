@@ -1,0 +1,148 @@
+---
+- include_role:
+    name: confluent.common
+  when: not common_role_completed|bool
+
+- name: Install the Zookeeper Packages
+  yum:
+    name: "{{item}}{{confluent_package_redhat_suffix}}"
+    state: latest
+  loop: "{{zookeeper_packages}}"
+  when: ansible_os_family == "RedHat"
+
+- name: Install the Zookeeper Packages
+  apt:
+    name: "{{item}}{{confluent_package_debian_suffix}}"
+  loop: "{{zookeeper_packages}}"
+  when: ansible_os_family == "Debian"
+
+- name: Create Zookeeper Group
+  group:
+    name: "{{zookeeper_group}}"
+
+- name: Create Zookeeper User
+  user:
+    name: "{{zookeeper_user}}"
+    comment: "Zookeeper User"
+    system: yes
+    group: "{{zookeeper_group}}"
+
+- name: Configure Kerberos
+  include_role:
+    name: confluent.kerberos
+  vars:
+    kerberos_group: "{{zookeeper_group}}"
+    kerberos_user: "{{zookeeper_user}}"
+    kerberos_keytab_path: "{{zookeeper_kerberos_keytab_path}}"
+    kerberos_handler: "restart zookeeper"
+  when: "'GSSAPI' in kafka_broker_sasl_enabled_mechanisms"
+
+- name: Set Zookeeper dataDir ownership
+  file:
+    path: "{{zookeeper.properties.dataDir}}"
+    owner: "{{zookeeper_user}}"
+    group: "{{zookeeper_group}}"
+    state: directory
+    mode: 0750
+
+- name: Set Ownership of Data Dir files
+  file:
+    path: "{{zookeeper.properties.dataDir}}"
+    owner: "{{zookeeper_user}}"
+    group: "{{zookeeper_group}}"
+    recurse: true
+
+- name: Create Zookeeper myid File
+  template:
+    src: myid.j2
+    dest: "{{zookeeper.properties.dataDir}}/myid"
+    mode: 0555
+    owner: "{{zookeeper_user}}"
+    group: "{{zookeeper_group}}"
+
+- name: Create Zookeeper Config
+  template:
+    src: zookeeper.properties.j2
+    dest: "{{zookeeper.config_file}}"
+    mode: 0400
+    owner: "{{zookeeper_user}}"
+    group: "{{zookeeper_group}}"
+  register: zookeeper_config
+  notify:
+    - restart zookeeper
+
+- name: Create Log Directory
+  file:
+    path: "{{zookeeper.log_path}}"
+    state: directory
+    group: "{{zookeeper_group}}"
+    owner: "{{zookeeper_user}}"
+    mode: 0750
+
+- name: Create Zookeeper log4j config
+  template:
+    src: zookeeper_log4j.properties.j2
+    dest: "{{zookeeper.log4j_file}}"
+    mode: 0640
+    owner: "{{zookeeper_user}}"
+    group: "{{zookeeper_group}}"
+  notify:
+    - restart zookeeper
+
+- name: Create Zookeeper Jaas config
+  template:
+    src: zookeeper_jaas.conf.j2
+    dest: "{{zookeeper.jaas_file}}"
+    mode: 0640
+    owner: "{{zookeeper_user}}"
+    group: "{{zookeeper_group}}"
+  when: "'GSSAPI' in kafka_broker_sasl_enabled_mechanisms"
+  notify:
+    - restart zookeeper
+
+- name: Deploy JMX Exporter Config File
+  copy:
+    src: "zookeeper.yml"
+    dest: "{{zookeeper_jmxexporter_config_path}}"
+    mode: 0640
+    owner: "{{zookeeper_user}}"
+    group: "{{zookeeper_group}}"
+  when: jmxexporter_enabled|bool
+
+- name: Create Service Override Directory
+  file:
+    path: "{{zookeeper.systemd_override | dirname}}"
+    owner: "{{zookeeper_user}}"
+    group: "{{zookeeper_group}}"
+    state: directory
+    mode: 0640
+
+- name: Write Service Overrides
+  template:
+    src: override.conf.j2
+    dest: "{{zookeeper.systemd_override}}"
+    mode: 0640
+    owner: "{{zookeeper_user}}"
+    group: "{{zookeeper_group}}"
+  notify:
+    - reload systemd
+    - restart zookeeper
+
+- name: Certs were Updated - Trigger Restart
+  command: /bin/true
+  notify: restart zookeeper
+  when: certs_updated|bool
+
+- meta: flush_handlers
+
+- name: Start Zookeeper Service
+  systemd:
+    name: "{{zookeeper_service_name}}"
+    enabled: yes
+    state: started
+
+- name: Zookeeper Health Check
+  include_tasks: health_check.yml
+  when:
+    - health_checks_enabled|bool
+    - not ansible_check_mode

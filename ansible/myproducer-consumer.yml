@@ -1,0 +1,99 @@
+---
+- name : Setup
+  hosts: tools
+  vars:
+    bootstrap: 172.20.10.10:9092
+    topicname_prefix: testtopic
+    partitions: 6
+    replicas: 3
+    retention: 10800000 #3 hours
+  tasks:
+    - name: check testtopic
+      shell: 
+        cmd: "kafka-topics --bootstrap-server {{bootstrap}} --list --topic {{ topicname_prefix }}-{{ partitions }}"
+      register: topiclist
+      tags:
+        - test
+    - debug:
+        var: topiclist
+    - name: create topic if it doesn't exist 
+      shell:
+        cmd: >-
+          kafka-topics --bootstrap-server {{ bootstrap }}
+          --topic {{ topicname_prefix }}-{{ partitions }}
+          --create --partitions {{ partitions }}
+          --replication-factor {{ replicas }}
+          --config retention.ms={{ retention }}
+          --config min.insync.replicas=2
+      when: topiclist.stdout != "{{ topicname_prefix }}-{{ partitions }}"
+
+- name: Tests
+  strategy: free
+  hosts:
+    # - tools
+    - kafka_connect
+  gather_facts: yes
+  vars:
+    bootstrap: 172.20.10.10:9092
+    topicname_prefix: testtopic
+    partitions: 6
+    throughput: 21050
+    record_size: 300
+    num_records: 5000
+    acks: all
+    configfile: "client.properties"
+  tasks:
+  - name: copy producer config
+    template:
+      src: ./producer.properties.j2
+      dest: "/tmp/producer_{{ configfile }}"
+  - name: copy consumer config
+    template:
+      src: ./consumer.properties.j2
+      dest: "/tmp/consumer_{{ configfile }}"
+  - name: producer test
+    shell: >-
+      kafka-producer-perf-test
+      --topic {{ topicname_prefix }}-{{ partitions }}
+      --producer.config /tmp/producer_{{ configfile }}
+      --record-size {{ record_size }}
+      --throughput {{ throughput }}
+      --num-records {{ num_records}} 2>&1| tee -a /tmp/producer_{{ partitions }}.log
+    environment:
+      CLASSPATH: /usr/share/java/monitoring-interceptors/monitoring-interceptors-5.4.1.jar
+    async: 10800
+    poll: 0
+    register: producer_sleeper
+  - name: consumer test
+    async: 10800
+    poll: 0
+    shell: >-
+      kafka-consumer-perf-test
+      --broker-list {{ bootstrap }}
+      --consumer.config /tmp/consumer_{{ configfile }}
+      --group {{ inventory_hostname }}-consumer01
+      --topic {{ topicname_prefix }}-{{ partitions }}
+      --messages {{ num_records }} 2>&1| tee -a /tmp/consumer_{{ partitions }}.log
+    environment:
+      CLASSPATH: /usr/share/java/monitoring-interceptors/monitoring-interceptors-5.4.1.jar
+    register: consumer_sleeper
+  - name: wait for producers to end
+    async_status:
+      jid: "{{ producer_sleeper.ansible_job_id }}"
+    register: producer_results
+    until: producer_results.finished
+    retries: 30
+  - name: wait for consumers to end
+    async_status:
+      jid: "{{ consumer_sleeper.ansible_job_id }}"
+    register: consumer_results
+    until: producer_results.finished
+    retries: 30
+  - name: get results
+    fetch:
+      remote_src: true
+      src: "/tmp/{{ item }}"
+      dest: "./results/{{ ansible_date_time.iso8601_basic_short }}"
+    loop:
+      - "producer_{{ partitions }}.log"
+      - "consumer_{{ partitions }}.log"

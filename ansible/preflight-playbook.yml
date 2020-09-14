@@ -1,0 +1,179 @@
+---
+    - name: all hosts stuff
+      hosts: all
+      tasks:
+        - name: disable firewalld
+          systemd:
+            name: firewalld
+            state: stopped
+            enabled: no
+
+        - name: flush iptables 
+          shell: "iptables -F"
+
+        - name: install epel-release
+          yum:
+            name: epel-release
+            state: latest
+
+        - name: install seport prerequisite
+          yum:
+            name: policycoreutils-python
+          when: ansible_os_family == "RedHat"
+
+        - name: install python requirements
+          yum:
+            name:
+              - python2-pip
+              - python2-setuptools
+
+        - name: update pip to latest
+          pip:
+            name:
+              - pip
+            state: latest
+
+        - name: update setuptools to latest
+          pip:
+            name:
+              - setuptools
+            state: latest
+
+
+
+    - name: ZK Stuff
+      hosts: zookeeper
+      tasks:
+        - import_role:
+            name: confluent.variables_handlers
+        - name: Partition drives
+          parted:
+            device: /dev/sdb
+            number: 1 
+            state: present
+
+        - name: create filessytem
+          filesystem:
+            fstype: xfs
+            dev: /dev/sdb1
+
+        - name: Mount Zookeeper Datadir
+          mount:
+            src: /dev/sdb1
+            path: /var/lib/zookeeper
+            opts: noatime
+            state: mounted
+            fstype: xfs
+        - name: Zookeeper Client Port
+          seport:
+            ports:
+              - "{{ zookeeper.properties.clientPort | default('2181') }}"
+            proto: tcp
+            setype: zookeeper_client_port_t
+            state: present
+          when:
+            - ansible_version.full is version_compare('2.4', '>=')
+            - ansible_selinux.status == "enabled"
+        - name: Zookeeper Election Port
+          seport:
+            ports:
+              - "{{ zookeeper_leader_port | default('3888') }}"
+            proto: tcp
+            setype: zookeeper_election_port_t
+            state: present
+          when:
+            - ansible_version.full is version_compare('2.4', '>=')
+            - ansible_selinux.status == "enabled"
+        - name: Zookeeper Leader Port
+          seport:
+            ports:
+              - "{{ zookeeper_leader_port | default('2888') }}"
+            proto: tcp
+            setype: zookeeper_leader_port_t
+            state: present
+          when:
+            - ansible_version.full is version_compare('2.4', '>=')
+            - ansible_selinux.status == "enabled"
+
+    - name: Broker Stuff
+      hosts: kafka_broker
+      vars:
+        broker_data_drives:
+          - /dev/sdb
+          - /dev/sdc
+      tasks:
+        - import_role:
+            name: confluent.variables_handlers
+        
+        - name: Partition drives
+          parted:
+            device: "{{ item }}"
+            number: 1 
+            state: present
+          loop: "{{ vars.broker_data_drives }}"
+        
+        - name: create filessytem
+          filesystem:
+            fstype: xfs
+            dev: "{{ item }}1"
+          loop: "{{ vars.broker_data_drives }}"
+          loop_control:
+            index_var: my_index
+        
+        - name: Mount Kafka Datadir
+          mount:
+            src: "{{ item }}1"
+            path: "/var/lib/kafka/data{{ my_index }}"
+            opts: noatime
+            state: mounted
+            fstype: xfs
+          # add kafka storage devices here 
+          # make sure to also add each mounted dir to 
+          # log.dirs in hosts.yml.sample:
+          # log.dirs=/var/lib/kafka/data1,/var/lib/kafka/data2 etc...
+          loop: "{{ vars.broker_data_drives }}"
+          loop_control:
+            index_var: my_index
+
+        - name: Broker ports
+          seport:
+            ports:
+              - "{{ kafka_broker_default_listeners.external.port }}"
+              - "{{ kafka_broker_custom_listeners.internal.port }}"
+            proto: tcp
+            setype: http_port_t
+            state: present
+          when:
+            - ansible_version.full is version_compare('2.4', '>=')
+            - ansible_selinux.status == "enabled"
+    
+    - name: Kafka Connect
+      hosts: kafka_connect
+      tasks:
+        - import_role:
+            name: confluent.variables_handlers
+        - name: Connect Ports
+          seport:
+            ports: "{{ kafka_connect_rest_port }}"
+            proto: tcp
+            setype: us_cli_port_t
+            state: present
+          when:
+            - ansible_version.full is version_compare('2.4', '>=')
+            - ansible_selinux.status == "enabled"
+
+    - name: Control Center
+      hosts: control_center
+      tasks:
+        - import_role:
+            name: confluent.variables_handlers
+        - name: Control Center ports
+          seport:
+            ports: "{{ control_center_port }}"
+            proto: tcp
+            setype: http_port_t
+            state: present
+          when:
+            - ansible_version.full is version_compare('2.4', '>=')
+            - ansible_selinux.status == "enabled"
+

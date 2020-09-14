@@ -1,0 +1,8 @@
+- name: cloudalchemy.prometheus
+- name: cloudalchemy.grafana
+- name: cloudalchemy.node-exporter
+- name: elastic.elasticsearch
+  version: 7.6.2
+- name: geerlingguy.kibana
+- name: geerlingguy.filebeat
+- name: geerlingguy.logstash

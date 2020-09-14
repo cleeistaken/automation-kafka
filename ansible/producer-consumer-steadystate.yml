@@ -1,0 +1,91 @@
+---
+# This playbook creates a 16 partition 3 replica topic and launches 3 producers on 
+# each host specified in the hosts section of the "Tests" section
+# With 3 hosts this should produce and consume ~45-50MB/s up to 100GB written
+# to Kafka per host.
+#
+# This test will start asynchronously, so even though it exits the producers/consumers
+# will be running on the target hosts
+- name : Setup
+  hosts: tools
+  tags:
+    - setup
+  vars:
+    bootstrap: 172.17.3.101:9092
+    topicname_prefix: steadystate
+    partitions: 128
+    replicas: 4
+    retention: 3600000 #1 hour
+  tasks:
+    - name: check testtopic
+      shell: 
+        cmd: >-
+            kafka-topics --bootstrap-server {{bootstrap}} 
+            --list --topic {{ topicname_prefix }}-{{ partitions }}
+      register: topiclist
+      tags:
+        - test
+    - debug:
+        var: topiclist
+    - name: create topic if it doesn't exist 
+      shell:
+        cmd: >-
+          kafka-topics --bootstrap-server {{ bootstrap }}
+          --topic {{ topicname_prefix }}-{{ partitions }}
+          --create --partitions {{ partitions }}
+          --replication-factor {{ replicas }}
+          --config retention.ms={{ retention }}
+          --config min.insync.replicas=2
+      when: topiclist.stdout != "{{ topicname_prefix }}-{{ partitions }}"
+
+- name: Tests
+  strategy: free
+  hosts:
+    - tools
+    - kafka_connect
+  gather_facts: no
+  vars:
+    bootstrap: 172.17.3.101:9092
+    topicname_prefix: steadystate
+    partitions: 128
+    throughput: 500000
+    record_size: 100
+    num_records: 1000000000 # 100GB
+    acks: -1
+  tasks:
+  - name: producer test
+    async: 5184000
+    poll: 5
+    command: >-
+      kafka-producer-perf-test
+      --topic {{ topicname_prefix }}-{{ partitions }}
+      --producer-props bootstrap.servers={{ bootstrap }} 
+            acks={{ acks }}
+            client.id={{ inventory_hostname }}-{{ item }}
+      --record-size {{ record_size }}
+      --throughput {{ throughput }}
+      --num-records {{ num_records}}
+    loop:
+        - 1
+        - 2
+        - 3
+    register: producer_output
+    tags:
+      - producer
+
+  - name: consumer test
+    async: 5184000
+    poll: 5
+    command: >-
+      kafka-consumer-perf-test
+      --broker-list {{ bootstrap }}
+      --group {{ inventory_hostname }}-consumer{{ item }}
+      --topic {{ topicname_prefix }}-{{ partitions }}
+      --messages {{ num_records }}
+    loop:
+        - 1
+        - 2
+        - 3
+    register: consumer_output
+    tags:
+      - consumer

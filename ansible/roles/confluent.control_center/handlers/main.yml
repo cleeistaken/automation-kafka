@@ -1,0 +1,5 @@
+---
+- name: restart control center
+  systemd:
+    name: "{{control_center_service_name}}"
+    state: restarted

@@ -1,0 +1,34 @@
+# This test runs 1 producer on each of the specified hosts at max throughput
+# Will write ~50GB per producer
+---
+- name : Kill Tests
+  hosts: 
+    - tools
+    - kafka_connect
+  tasks:
+    - name: Get running Producer
+      shell: "ps -ef | grep -v grep | grep -w org.apache.kafka.tools.ProducerPerformance | awk '{print $2}'"
+      register: producer
+    - name: Get running Consumer
+      shell: "ps -ef | grep -v grep | grep -w kafka.tools.ConsumerPerformance | awk '{print $2}'"
+      register: consumer
+    
+    - name: Kill Producer
+      shell: "kill {{ item }}"
+      with_items: "{{ producer.stdout_lines }}"
+      when: producer.stdout != ""
+
+    - name: Kill Consumer
+      shell: "kill {{ item }}"
+      with_items: "{{ consumer.stdout_lines }}"
+      when: consumer.stdout != ""
+    
+    - name: Report Producer
+      debug: 
+        msg: "No Producer tests appear to be running on {{ ansible_hostname}}"
+      when: producer.stdout == ""
+
+    - name: Report Consumer
+      debug: 
+        msg: "No Consumer tests appear to be running on {{ ansible_hostname}}"
+      when: consumer.stdout == ""
