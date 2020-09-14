@@ -98,7 +98,7 @@ Edit `hosts.yml` and set the ansible user, and private key file for access to th
 Ensure that wherever you run ansible from can ssh to each of the hosts, it's easiest to test this with the Ansible ping module:
 
 ```
-ansible -i hosts.yml -m ping all
+ansible -i settings.yml -i hosts.yml -m ping all
 ```
 
 
@@ -113,7 +113,7 @@ There's a playbook called `preflight-playbook.yml` which does the follwoing:
  Run it like this:
 
 ```
-ansible-playbook -i hosts.yml preflight-playbook.yml
+ansible-playbook -i settings.yml -i hosts.yml preflight-playbook.yml
 ```
 
 ### Core services
@@ -131,7 +131,7 @@ Make sure that the Kafka brokers section has the correct properties set for the 
 To install the core Kafka, Zookeeper, Connect and Control Center services run the all.yml playbook like this:
 
 ```
-ansible-playbook -i hosts.yml all.yml
+ansible-playbook -i settings.yml -i hosts.yml all.yml
 ```
 
 ### Tools host
@@ -159,7 +159,7 @@ ansible-galaxy install -r ansible-requirements.yml
 Install tools:
 
 ```
-ansible-playbook -i hosts.yml tools-provisioning.yml
+ansible-playbook -i settings.yml -i hosts.yml tools-provisioning.yml
 ```
 
 #### Grafana Configuration
