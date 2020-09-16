@@ -14,7 +14,7 @@ This is the linux system used to invoke Terraform and Ansible in order to create
 #### Orchestration System Setup
 1. Install requirements.
     ```
-    sudo yum -y install python3 python3-pip git wget unzip
+    sudo yum -y install python3 python3-pip git wget unzip libselinux-python libselinux-python3
     ```
 
 2. Install Terraform according to the [instructions here](https://www.terraform.io/downloads.html)
@@ -72,7 +72,7 @@ We create a template to address the following requirements and limitations.
    fi
    
    # Copy to the template VM
-   ssh-copy-id vmware@<ip of the vm>
+   ssh-copy-id confluent@<ip of the vm>
    
    ```
 
