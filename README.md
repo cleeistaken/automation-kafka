@@ -14,16 +14,22 @@ This is the linux system used to invoke Terraform and Ansible in order to create
 #### Orchestration System Setup
 1. Install requirements.
     ```
-    sudo yum -y install python3 python3-pip git wget unzip libselinux-python libselinux-python3
+    # Centos 8
+    sudo yum -y install python3 python3-pip git wget unzip libselinux-python3
     ```
 
 2. Install Terraform according to the [instructions here](https://www.terraform.io/downloads.html)
     ```
     # Download terraform package
     # Note. The scripts are using features only available in version 0.13+
-    wget https://releases.hashicorp.com/terraform/0.13.2/terraform_0.13.2_linux_amd64.zip
+    TERRAFORM_VERSION=0.13.3
+   
+    # wget the binary
+    wget https://releases.hashicorp.com/terraform/$TERRAFORM_VERSION/terraform_$TERRAFORM_VERSION_linux_amd64.zip
+    
     # Extract
-    unzip terraform_*_linux_amd64.zip
+    unzip terraform_$TERRAFORM_VERSION_linux_amd64.zip
+    
     # Install
     sudo mv ./terraform /usr/bin/
     ```
@@ -39,8 +45,10 @@ This is the linux system used to invoke Terraform and Ansible in order to create
     ```
     # Create virtual environment
     python3 -m venv $HOME/.python3-venv
+   
     # Activate the virtual environment
     source $HOME/.python3-venv/bin/activate
+   
     # (optional) Add VENV to login script
     echo "source $HOME/.python3-venv/bin/activate" >> $HOME/.bashrc
     ```

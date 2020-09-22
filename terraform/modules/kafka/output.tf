@@ -1,17 +1,11 @@
-output "rally_nodes" {
+output "kafka" {
   value = {
-    name = "cluster_${var.vsphere_cluster_index + 1}"
-    hosts = vsphere_virtual_machine.rally_node_vm.*.default_ip_address
-    hostnames = vsphere_virtual_machine.rally_node_vm.*.name
-    domain = var.vsphere_cluster.dns_domain
-  }
-}
-
-output "es_nodes" {
-  value = {
-    name = "cluster_${var.vsphere_cluster_index + 1}"
-    hosts = vsphere_virtual_machine.es_node_vm.*.default_ip_address
-    hostnames = vsphere_virtual_machine.es_node_vm.*.name
-    domain = var.vsphere_cluster.dns_domain
+    "cluster_id" = var.vsphere_cluster_index + 1
+    "cluster" = {
+      "broker" = vsphere_virtual_machine.kafka_broker
+      "control_center" = vsphere_virtual_machine.kafka_control_center
+      "connect" = vsphere_virtual_machine.kafka_connect
+      "zookeeper" = vsphere_virtual_machine.kafka_zookeeper
+    }
   }
 }

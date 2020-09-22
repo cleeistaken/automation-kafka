@@ -6,12 +6,23 @@
       yum:
         name: epel-release
         state: latest
+
     - name: install python packages
       yum:
         name: 
           - python-pip
           - python-setuptools
         state: latest
+      when: ansible_distribution == 'CentOS' and ansible_distribution_version >= '7' and ansible_distribution_version < '8'
+
+    - name: install python packages
+      yum:
+        name:
+          - python3-pip
+          - python3-setuptools
+          - python3-jmespath
+      when: ansible_distribution == 'CentOS' and ansible_distribution_version >= '8'
+
     - name: update pip
       pip:
         name:
@@ -35,7 +46,7 @@
     - cloudalchemy.node-exporter
 
 - name: Tools Provisioning
-  hosts: tools
+  hosts: control_center
   tasks:
     - name: Open ports on tools host
       tags:
@@ -143,7 +154,7 @@
       vars:
         filebeat_output_logstash_enabled: true
         filebeat_output_logstash_hosts:
-          - "{{ hostvars[groups['tools'][0]]['inventory_hostname']}}:5044"
+          - "{{ hostvars[groups['control_center'][0]]['inventory_hostname']}}:5044"
         filebeat_output_elasticsearch_enabled: false
         filebeat_inputs:
           - type: log

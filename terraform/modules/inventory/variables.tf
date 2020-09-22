@@ -1,12 +1,4 @@
-variable "es_nodes" {
-  type = map
-  default = {}
-  description = "A map of inventory group names to IP addresses."
-}
-
-variable "rally_nodes" {
-  type = map
-  default = {}
+variable "kafka" {
   description = "A map of inventory group names to IP addresses."
 }
 

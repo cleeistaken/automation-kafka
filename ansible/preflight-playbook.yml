@@ -16,10 +16,30 @@
             name: epel-release
             state: latest
 
+        - name: install centos 7 requirements
+          yum:
+            name:
+              - policycoreutils-python
+          when: ansible_distribution == 'CentOS' and ansible_distribution_version >= '7' and ansible_distribution_version < '8'
+
+        - name: install centos 8 requirements
+          yum:
+            name:
+              - python3-policycoreutils
+              - policycoreutils-python-utils
+          when: ansible_distribution == 'CentOS' and ansible_distribution_version >= '8'
+
         - name: install seport prerequisite
           yum:
             name: policycoreutils-python
-          when: ansible_os_family == "RedHat"
+          when: ansible_os_family == "RedHat" and ansible_distribution_version >= '7' and ansible_distribution_version < '8'
+
+        - name: install python requirements
+          yum: 
+            name:
+              - python3
+              - python3-pip
+              - python3-setuptools
 
         - name: install python requirements
           yum:
@@ -129,7 +149,7 @@
             fstype: xfs
           # add kafka storage devices here 
           # make sure to also add each mounted dir to 
-          # log.dirs in hosts.yml.sample:
+          # log.dirs in hosts.yml:
           # log.dirs=/var/lib/kafka/data1,/var/lib/kafka/data2 etc...
           loop: "{{ vars.broker_data_drives }}"
           loop_control:

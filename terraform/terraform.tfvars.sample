@@ -1,59 +1,69 @@
-# vCenter
-vsphere_server                          = "vc.corp.local"
-vsphere_user                            = "administrator@vsphere.local"
-vsphere_password                        = "password123"
-vsphere_datacenter                      = "datacenter"
+#
+# vCenter Server Configuration
+#
+vcenter_server = "vc.lab.local"
+vcenter_user = "administrator@vsphere.local"
+vcenter_password = "password123!"
+vcenter_insecure_ssl = true
 
-# Networking
-external_network                        = "external_net"
-external_network_ipv4_gateway           = "192.168.1.1"
-external_network_ipv4_netmask           = 24
-internal_network                        = "internal_net"
-internal_network_ipv4_gateway           = "192.168.2.1"
-internal_network_ipv4_netmask           = 24
-dns_domain                              = "corp.local"
-dns_suffix_list                         = ["corp.local"]
-dns_servers                             = ["192.168.1.10"]
+#
+# vSphere Configuration
+#
+vsphere_clusters = [
+  {
+    # See variables.tf for the description of the variable
+    vs_dc                                = "datacenter"
+    vs_cls                               = "cluster01"
+    vs_rp                                = "kafka"
+    vs_dvs                               = "vds"
+    vs_dvs_pg_public                     = "pg-public"
+    vs_dvs_pg_public_ipv4_subnet         = "10.0.0.0/24"
+    vs_dvs_pg_public_ipv4_start_hostnum  = "100"
+    vs_dvs_pg_public_ipv4_gw             = "172.16.0.0/24"
+    vs_dvs_pg_private                    = "pg-private"
+    vs_dvs_pg_private_ipv4_subnet        = "10.0.0.0/24"
+    vs_dvs_pg_private_ipv4_start_hostnum = "100"
+    vs_ds                                = "vsan01"
+    vs_ds_sp                             = "vSAN Default Storage Policy"
+    vs_vm_template                       = "centos8.2_x64"
+    vs_vm_template_boot                  = "efi"
+    vs_vm_domain                         = "wld01.lab.local"
+    vs_vm_dns                            = ["10.0.0.10", "10.0.0.11"]
+    vs_vm_dns_suffix                     = ["wld01.lab.local", "lab.local"]
+  }
+]
 
-# VM Template
-vm_template_name                        = "confluent-kafka-template"
+kafka_broker_count_per_cluster = 4
+kafka_zookeeper_count_per_cluster = 3
+kafka_connect_count_per_cluster = 3
 
-# Resource Pool
-vsphere_resource_pool                   = "Confluent"
+kafka_vm_prefix = "kafka"
 
-# Kafka Brokers
-kafka_broker_cpu                        = 4
-kafka_broker_ram                        = 65536
-kafka_broker_os_dir_size_gb             = 100
-kafka_broker_data_dir_size_gb           = 512
+kafka_broker {
+    cpu = 16
+    memory_gb = 65536
+    os_disk_gb = 100
+    data_disk_count = 2
+    data_disk_gb = 250
+}
 
-# Kafka Zookeepers
-zookeeper_cpu                           = 2
-zookeeper_ram                           = 16384
-zookeeper_os_dir_size_gb                = 100
-zookeeper_data_dir_size_gb              = 128
+kafka_zookeeper {
+    cpu = 4
+    memory_gb = 8192
+    os_disk_gb = 100
+    data_disk_count = 1
+    data_disk_gb = 100
+}
 
-# Kafka Connect
-kafka_connect_cpu                       = 2
-kafka_connect_ram                       = 8192
-kafka_connect_os_dir_size_gb            = 100
+kafka_connect {
+    cpu = 8
+    memory_gb = 8192
+    os_disk_gb = 100
+}
 
-# Control Center
-control_center_cpu                      = 8
-control_center_ram                      = 65536
-control_center_os_dir_size_gb           = 100
-
-# Cluster 1
-vsphere_cluster_1                       = "cl01"
-vsphere_cluster_1_dvs                   = "cl01-vds01"
-vsphere_cluster_1_datastore             = "cl01-vsan01"
-vsphere_cluster_1_hosts                 = ["esxi01.corp.local", "esxi02.corp.local", "esxi03.corp.local", "esxi04.corp.local"]
-cluster_1_kafka_broker_count            = 4
-cluster_1_kafka_broker_external_ips     = ["192.168.1.101", "192.168.1.102", "192.168.1.103", "192.168.1.104"]
-cluster_1_kafka_broker_internal_ips     = ["192.168.2.101", "192.168.2.102", "192.168.2.103", "192.168.2.104"]
-cluster_1_zookeeper_count               = 3
-cluster_1_zookeeper_ips                 = ["192.168.1.111", "192.168.1.112", "192.168.1.113"]
-cluster_1_kafka_connect_count           = 2
-cluster_1_kafka_connect_ips             = ["192.168.1.114", "192.168.1.115"]
-cluster_1_control_center_ip             = "192.168.1.116"
-
+kafka_control_center {
+    cpu = 8
+    memory_gb = 16384
+    os_disk_gb = 100
+    data_disk_gb = 100
+}

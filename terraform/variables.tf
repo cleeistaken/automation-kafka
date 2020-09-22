@@ -1,219 +1,143 @@
 #
-# vCenter
+# vSphere vCenter Server
 #
-variable vsphere_server {
+variable vcenter_server {
+    description = "vCenter Server hostname or IP"
     type = string
 }
 
-variable vsphere_user {
+variable vcenter_user {
+    description = "vCenter Server username"
     type = string
 }
 
-variable vsphere_password {
+variable vcenter_password {
+    description = "vCenter Server password"
     type = string
 }
 
-variable vsphere_datacenter {
-    type = string
+variable vcenter_insecure_ssl {
+    description = "Allow insecure connection to the vCenter server (unverified SSL certificate)"
+    type = bool
+    default = false
 }
 
 #
-# Networking
+# vSphere Clusters
 #
-variable external_network {
-    type = string
+variable vsphere_clusters {
+    type = list(object({
+        # vSphere Datacenter
+        vs_dc = string
+
+        # vSphere Cluster in the Datacenter
+        vs_cls = string
+
+        # vSphere Resource Pool
+        vs_rp = string
+
+        # vSphere Distributed Virtual Switch
+        vs_dvs = string
+
+        # vSphere Distributed Portgroup for the public/routed network
+        vs_dvs_pg_public = string
+
+        # Public Portgroup IPv4 subnet in CIDR notation (e.g. 10.0.0.0/24)
+        vs_dvs_pg_public_ipv4_subnet = string
+
+        # Public Portgroup IPv4 address based on the subnet
+        # Ref. https://www.terraform.io/docs/configuration/functions/cidrhost.html
+        vs_dvs_pg_public_ipv4_start_hostnum = number
+
+        # Public Portgroup IPv4 gateway address
+        vs_dvs_pg_public_ipv4_gw = string
+
+        # vSphere Distributed Portgroup for the private network
+        vs_dvs_pg_private = string
+
+        # Private Portgroup IPv4 subnet in CIDR notation (e.g. 10.0.0.0/24)
+        vs_dvs_pg_private_ipv4_subnet = string
+
+        # Private Portgroup IPv4 address based on the subnet
+        # Ref. https://www.terraform.io/docs/configuration/functions/cidrhost.html
+        vs_dvs_pg_private_ipv4_start_hostnum = number
+
+        # vSphere vSAN datastore
+        vs_ds = string
+
+        # vSphere vSAN Storage Policy
+        vs_ds_sp = string
+
+        # Virtual Machine template to clone from
+        vs_vm_template = string
+
+        # Virtual Machine template boot mode (bios/efi)
+        vs_vm_template_boot = string
+
+        # Virtual machine domain name
+        vs_vm_domain = string
+
+        # Virtual Machine DNS servers
+        vs_vm_dns = list(string)
+
+        # Virtual Machine DNS suffixes
+        vs_vm_dns_suffix = list(string)
+    }))
 }
 
-variable external_network_ipv4_gateway {
-    type = string
-}
-
-variable external_network_ipv4_netmask {
-    type = number
-    default = 24
-}
-
-variable internal_network {
-    type = string
-}
-
-variable internal_network_ipv4_gateway {
-    type = string
-}
-
-variable internal_network_ipv4_netmask {
-    type = number
-    default = 24
-}
-
-variable dns_domain {
-    type = string
-}
-
-variable dns_servers {
-    type = list(string)
-}
-
-variable dns_suffix_list {
-    type = list(string)
-}
-
-#
-# VM Template
-#
-variable vm_template_name {
-    type = string
-}
-
-#
-# Resource Pool
-#
-variable vsphere_resource_pool {
-    type = string
-}
-
-#
-# Kafka Broker
-#
-variable kafka_broker_cpu {
-    type = number
-    default = 8
-}
-
-variable kafka_broker_ram {
-    type = number
-    default = 8192
-}
-
-variable kafka_broker_os_dir_size_gb {
-    type = number
-    default = 100
-}
-
-variable kafka_broker_data_dir_size_gb {
-    type = number
-    default = 128
-}
-
-#
-# Kafka Zookeeper
-#
-variable zookeeper_cpu {
-    type = number
-    default = 2
-}
-
-variable zookeeper_ram {
-    type = number
-    default = 8192
-}
-
-variable zookeeper_os_dir_size_gb {
-    type = number
-    default = 100
-}
-
-variable zookeeper_data_dir_size_gb {
-    type = number
-    default = 128
-}
-
-#
-# Kafka Connect
-#
-variable kafka_connect_cpu {
-    type = number
-    default = 2
-}
-
-variable kafka_connect_ram {
-    type = number
-    default = 8192
-}
-
-variable kafka_connect_os_dir_size_gb {
-    type = number
-    default = 100
-}
-
-#
-# Control Center
-#
-variable control_center_cpu {
-    type = number
-    default = 8
-}
-
-variable control_center_ram {
-    type = number
-    default = 32768
-}
-
-variable control_center_os_dir_size_gb {
-    type = number
-    default = 100
-}
-
-variable control_center_data_dir_size_gb {
-    type = number
-    default = 128
-}
-
-#
-# Cluster 1
-#
-variable vsphere_cluster_1 {
-    type = string
-}
-
-variable vsphere_cluster_1_datastore {
-    type = string
-}
-
-variable vsphere_cluster_1_dvs {
-    type = string
-}
-
-variable vsphere_cluster_1_hosts {
-    type = list(string)
-}
-
-variable cluster_1_kafka_broker_count {
+variable kafka_broker_count_per_cluster {
     type = number
     default = 4
 }
 
-variable cluster_1_kafka_broker_external_ips {
-    type = list(string)
-}
-
-variable cluster_1_kafka_broker_internal_ips {
-    type = list(string)
-}
-
-variable cluster_1_zookeeper_count {
+variable kafka_zookeeper_count_per_cluster {
     type = number
     default = 3
 }
 
-variable cluster_1_zookeeper_external_ips {
-    type = list(string)
-}
-
-variable cluster_1_zookeeper_internal_ips {
-    type = list(string)
-}
-
-variable cluster_1_kafka_connect_count {
+variable kafka_connect_count_per_cluster {
     type = number
     default = 3
 }
 
-variable cluster_1_kafka_connect_ips {
-    type = list(string)
-}
-
-variable cluster_1_control_center_ip {
+variable kafka_vm_prefix {
     type = string
+    default = "kafka"
 }
 
+variable kafka_broker {
+    type = object({
+        cpu = number
+        memory_gb = number
+        os_disk_gb = number
+        data_disk_count = number
+        data_disk_gb = number
+    })
+}
+
+variable kafka_zookeeper {
+    type = object({
+        cpu = number
+        memory_gb = number
+        os_disk_gb = number
+        data_disk_count = number
+        data_disk_gb = number
+    })
+}
+
+variable kafka_connect {
+    type = object({
+        cpu = number
+        memory_gb = number
+        os_disk_gb = number
+    })
+}
+
+variable kafka_control_center {
+    type = object({
+        cpu = number
+        memory_gb = number
+        os_disk_gb = number
+        data_disk_gb = number
+    })
+}
