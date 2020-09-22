@@ -1,14 +1,14 @@
 ---
 - name: Setup Testing Parameters
   hosts:
-    - tools
     - kafka_connect
   tasks:
-    - set_fact: topic_name="{{ test_prefix }}-{{ partitions }}-{{ replication }}"
+    - set_fact: topic_name="{{ test_prefix }}-{{ partitions }}-{{ replication }}-{{ inventory_hostname }}"
     - set_fact: timestamp= "{{ ansible_date_time.iso8601_basic_short }}"
 
 - name: Setup Topic
-  hosts: tools
+  hosts:
+    - kafka_connect
   tasks:
     - debug:
          msg: Preparing topic {{ topic_name }}

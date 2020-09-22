@@ -1,13 +1,19 @@
 #! /bin/bash
 
+echo "This test creates performs the following:"
+echo "  - Create one topic"
+echo "  - Have all the producers write to the single topic"
+echo "  - Have all the consumers read from that topic"
+echo " "
+
 echo "Killing any running tests"
-ansible-playbook -i hosts-3-cluster.yml kill-tests.yml
+ansible-playbook -i settings.yml -i inventory.yml kill-tests.yml
 
 echo "Waiting 1 minute"
 sleep 60
 
 echo "Running RF3 producer consumer test with GZIP compression"
-ansible-playbook -i settings.yml -i hosts.yml test-producer-consumer.yml \
+ansible-playbook -i settings.yml -i hosts.yml test-producer-consumer-1.yml \
 -e test_prefix=testtopic \
 -e partitions=16 \
 -e replication=3 \
@@ -23,7 +29,7 @@ echo "Waiting 10 minutes"
 sleep 600
 
 echo "Running RF3 producer consumer test with NO compression"
-ansible-playbook -i settings.yml -i hosts.yml test-producer-consumer.yml \
+ansible-playbook -i settings.yml -i hosts.yml test-producer-consumer-1.yml \
 -e test_prefix=testtopic \
 -e partitions=16 \
 -e replication=3 \
@@ -35,11 +41,11 @@ ansible-playbook -i settings.yml -i hosts.yml test-producer-consumer.yml \
 -e acks=-1 \
 -e compression=none
 
-#echo "Waiting 10 minutes"
+echo "Waiting 10 minutes"
 sleep 600
 
 echo "Running RF4 with producer consumer test with GZIP compression"
-ansible-playbook -i settings.yml -i hosts.yml test-producer-consumer.yml \
+ansible-playbook -i settings.yml -i hosts.yml test-producer-consumer-1.yml \
 -e test_prefix=testtopic \
 -e partitions=16 \
 -e replication=4 \
@@ -55,7 +61,7 @@ echo "Waiting 10 minutes"
 sleep 600
 
 echo "Running RF4 with producer consumer test with NO compression"
-ansible-playbook -i settings.yml -i hosts.yml test-producer-consumer.yml \
+ansible-playbook -i settings.yml -i hosts.yml test-producer-consumer-1.yml \
 -e test_prefix=testtopic \
 -e partitions=16 \
 -e replication=4 \
