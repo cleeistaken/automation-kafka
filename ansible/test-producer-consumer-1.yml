@@ -4,7 +4,7 @@
     - kafka_connect
   tasks:
     - set_fact: topic_name="{{ test_prefix }}-{{ partitions }}-{{ replication }}"
-    - set_fact: timestamp= "{{ ansible_date_time.iso8601_basic_short }}"
+    - set_fact: timestamp="{{ ansible_date_time.iso8601_basic_short }}"
 
 - name: Setup Topic
   hosts:

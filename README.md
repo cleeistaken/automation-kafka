@@ -101,12 +101,12 @@ Once everything is set, run `terraform init`, then run `terraform plan` to ensur
 After everything is built, there will be outputs of the various components IP addresses. Note this for the Ansible section.
 
 ## Ansible
-Edit `hosts.yml` and set the ansible user, and private key file for access to the target machines, be to include the ip addresses for each service output by the terraform apply. 
+Edit `inventory.yml` and set the ansible user, and private key file for access to the target machines, be to include the ip addresses for each service output by the terraform apply. 
 
 Ensure that wherever you run ansible from can ssh to each of the hosts, it's easiest to test this with the Ansible ping module:
 
 ```
-ansible -i settings.yml -i hosts.yml -m ping all
+ansible -i settings.yml -i inventory.yml -m ping all
 ```
 
 
@@ -121,11 +121,11 @@ There's a playbook called `preflight-playbook.yml` which does the follwoing:
  Run it like this:
 
 ```
-ansible-playbook -i settings.yml -i hosts.yml preflight-playbook.yml
+ansible-playbook -i settings.yml -i inventory.yml preflight-playbook.yml
 ```
 
 ### Core services
-Make sure that the Kafka brokers section has the correct properties set for the environment: `broker.rack`, `default.replication.factor`, and `log.dirs` property is set in `hosts.yml`:
+Make sure that the Kafka brokers section has the correct properties set for the environment: `broker.rack`, `default.replication.factor`, and `log.dirs` property is set in `inventory.yml`:
 
 ```
 172.20.10.11:
@@ -139,13 +139,13 @@ Make sure that the Kafka brokers section has the correct properties set for the 
 To install the core Kafka, Zookeeper, Connect and Control Center services run the all.yml playbook like this:
 
 ```
-ansible-playbook -i settings.yml -i hosts.yml all.yml
+ansible-playbook -i settings.yml -i inventory.yml all.yml
 ```
 
 ### Tools host
 The `tools-provisioning.yml` playbook installs the following services
 
-* Installs Prometheus on the tools host specified in `hosts.yml`
+* Installs Prometheus on the tools host specified in `inventory.yml`
 * Installs [Prometheus node exporter](https://github.com/prometheus/node_exporter) on all hosts
 * Installs core kafka commands needed for performance tests on tools host
 * Installs Grafana on the tools host
@@ -167,7 +167,7 @@ ansible-galaxy install -r ansible-requirements.yml
 Install tools:
 
 ```
-ansible-playbook -i settings.yml -i hosts.yml tools-provisioning.yml
+ansible-playbook -i settings.yml -i inventory.yml tools-provisioning.yml
 ```
 
 #### Grafana Configuration
