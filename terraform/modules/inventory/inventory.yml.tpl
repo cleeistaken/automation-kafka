@@ -19,7 +19,7 @@ all:
 %{ for vm in item.kafka.cluster.broker ~}
             ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
               kafka_broker:
-                data_dir:
+                datadir:
 %{ for i in range(1, length(vm.disk)) ~}
                   - /var/lib/kafka/data${ (i - 1) }
 %{ endfor ~}
