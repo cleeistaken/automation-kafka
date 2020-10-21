@@ -3,7 +3,6 @@
 ---
 - name : Kill Tests
   hosts: 
-    - tools
     - kafka_connect
   tasks:
     - name: Get running Producer

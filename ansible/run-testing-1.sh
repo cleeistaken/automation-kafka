@@ -13,11 +13,10 @@ echo "Waiting 1 minute"
 sleep 60
 
 echo "Running RF3 producer consumer test with GZIP compression"
-ansible-playbook -i settings.yml -i hosts.yml test-producer-consumer-1.yml \
+ansible-playbook -i settings.yml -i inventory.yml test-producer-consumer-1.yml \
 -e test_prefix=testtopic \
 -e partitions=16 \
 -e replication=3 \
--e bootstrap="172.17.3.101:9092" \
 -e retention=3600000 \
 -e throughput=-1 \
 -e record_size=100 \
@@ -29,11 +28,10 @@ echo "Waiting 10 minutes"
 sleep 600
 
 echo "Running RF3 producer consumer test with NO compression"
-ansible-playbook -i settings.yml -i hosts.yml test-producer-consumer-1.yml \
+ansible-playbook -i settings.yml -i inventory.yml test-producer-consumer-1.yml \
 -e test_prefix=testtopic \
 -e partitions=16 \
 -e replication=3 \
--e bootstrap="172.17.3.101:9092" \
 -e retention=3600000 \
 -e throughput=-1 \
 -e record_size=100 \
@@ -45,11 +43,10 @@ echo "Waiting 10 minutes"
 sleep 600
 
 echo "Running RF4 with producer consumer test with GZIP compression"
-ansible-playbook -i settings.yml -i hosts.yml test-producer-consumer-1.yml \
+ansible-playbook -i settings.yml -i inventory.yml test-producer-consumer-1.yml \
 -e test_prefix=testtopic \
 -e partitions=16 \
 -e replication=4 \
--e bootstrap="172.17.3.101:9092" \
 -e retention=3600000 \
 -e throughput=-1 \
 -e record_size=100 \
@@ -61,11 +58,10 @@ echo "Waiting 10 minutes"
 sleep 600
 
 echo "Running RF4 with producer consumer test with NO compression"
-ansible-playbook -i settings.yml -i hosts.yml test-producer-consumer-1.yml \
+ansible-playbook -i settings.yml -i inventory.yml test-producer-consumer-1.yml \
 -e test_prefix=testtopic \
 -e partitions=16 \
 -e replication=4 \
--e bootstrap="172.17.3.101:9092" \
 -e retention=3600000 \
 -e throughput=-1 \
 -e record_size=100 \

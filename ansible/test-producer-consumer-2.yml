@@ -3,15 +3,21 @@
   hosts:
     - kafka_connect
   tasks:
-    - set_fact: topic_name="{{ test_prefix }}-{{ partitions }}-{{ replication }}-{{ inventory_hostname }}"
-    - set_fact: timestamp= "{{ ansible_date_time.iso8601_basic_short }}"
+    - set_fact: 
+        topic_name: "{{ test_prefix }}-{{ partitions }}-{{ replication }}-{{ inventory_hostname }}"
+        timestamp: "{{ ansible_date_time.iso8601_basic_short }}"
+        bootstrap: "{{ hostvars['localhost']['groups']['kafka_broker'][0] }}:{{ kafka_broker_custom_listeners.external.port }}"
 
 - name: Setup Topic
   hosts:
     - kafka_connect
+  gather_facts: no
   tasks:
     - debug:
-         msg: Preparing topic {{ topic_name }}
+         msg: "Bootstrap server: {{ bootstrap }}"
+
+    - debug:
+         msg: "Preparing topic {{ topic_name }}"
 
     - name: Check if topic {{ topic_name }} exists
       command: >-
@@ -22,7 +28,7 @@
       register: topiclist
 
     - debug:
-         var: topiclist.stdout
+         msg: "Found topic?: {{ topiclist.stdout }}"
 
     - name: Delete topic {{ topic_name }} if it exists
       command: >-
@@ -44,7 +50,7 @@
       register: topiclist
 
     - debug:
-         var: topiclist.stdout
+         msg: "Topic still exists?: {{ topiclist.stdout }}"
 
     - name: Creating topic
       command: >-

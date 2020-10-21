@@ -59,8 +59,6 @@
               - setuptools
             state: latest
 
-
-
     - name: ZK Stuff
       hosts: zookeeper
       tasks:
@@ -118,25 +116,50 @@
     - name: Broker Stuff
       hosts: kafka_broker
       vars:
-        broker_data_drives:
-          - /dev/sdb
-          - /dev/sdc
+        data_disks: "{{ hostvars[inventory_hostname].ansible_devices.keys() | map('regex_search', 'sd([b-z]+|[a-z]{2})') | select('string') | list | sort }}"
       tasks:
         - import_role:
             name: confluent.variables_handlers
-        
+    
+        - name: gather hardware facts
+          setup:
+            gather_subset:
+              - hardware
+
+        - debug:
+            var: data_disks
+ 
+        - name: get disks (/dev/sd*) except sda (OS)
+          set_fact:
+            broker_data_drives: "{{ broker_data_drives|default([]) + [ '/dev/' ~ item ] }}"
+          loop: "{{ data_disks }}"
+
+        - name: list disks
+          debug:
+            var: broker_data_drives
+
+        - name: get mounted devices
+          set_fact:
+            mounted_devices: "{{ ansible_mounts|json_query('[].device') }}"     
+
+        - name: List mounted devices
+          debug:
+            var: mounted_devices
+
         - name: Partition drives
           parted:
             device: "{{ item }}"
             number: 1 
             state: present
-          loop: "{{ vars.broker_data_drives }}"
+          when: item not in mounted_devices
+          loop: "{{ broker_data_drives }}"
         
         - name: create filessytem
           filesystem:
             fstype: xfs
             dev: "{{ item }}1"
-          loop: "{{ vars.broker_data_drives }}"
+          when: item not in mounted_devices
+          loop: "{{ broker_data_drives }}"
           loop_control:
             index_var: my_index
         
@@ -151,7 +174,8 @@
           # make sure to also add each mounted dir to 
           # log.dirs in hosts.yml:
           # log.dirs=/var/lib/kafka/data1,/var/lib/kafka/data2 etc...
-          loop: "{{ vars.broker_data_drives }}"
+          when: item not in mounted_devices
+          loop: "{{ broker_data_drives }}"
           loop_control:
             index_var: my_index
 

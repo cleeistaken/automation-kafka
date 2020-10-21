@@ -8,6 +8,20 @@ all:
     #ansible_become: true
     ansible_ssh_private_key_file: ~/.ssh/id_rsa
 
+    kafka_broker_custom_listeners:
+      internal:
+        name: INTERNAL
+        port: 9091
+        # ssl_enabled: false
+        ssl_mutual_auth_enabled: false
+        sasl_protocol: none
+      external:
+        name: EXTERNAL
+        port: 9092
+        # ssl_enabled: true
+        ssl_mutual_auth_enabled: false
+        sasl_protocol: none
+
     #### Monitoring Configuration ####
     ## Jolokia is enabled by default. The Jolokia jar gets pulled from the internet and enabled on all the components
     ## To disable, uncomment this line:

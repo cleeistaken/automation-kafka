@@ -27,6 +27,7 @@ all:
                   broker.rack: rack_${ item.kafka.cluster_id }
                   default.replication.factor: 3
               # Leave broker ID unset to have it automatically assigned. Uncomment and set if
+              # it needs to be set to a specific value.
               # https://kafka.apache.org/20/documentation.html
               # broker_id: 0
               kafka_broker_custom_listeners:
@@ -44,7 +45,10 @@ all:
           hosts:
 %{ for vm in item.kafka.cluster.zookeeper ~}
             ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
-              zookeeper_id: -1
+              # Leave zookeeper ID unset to have it automatically assigned. Uncomment and set if
+              # it needs to be set to a specific value.
+              # https://kafka.apache.org/20/documentation.html
+              # zookeeper_id: -1
 %{ endfor ~}
 %{ endfor ~}
 
