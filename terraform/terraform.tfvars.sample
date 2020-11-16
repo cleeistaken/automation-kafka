@@ -37,9 +37,9 @@ kafka_broker_count_per_cluster = 4
 kafka_zookeeper_count_per_cluster = 3
 kafka_connect_count_per_cluster = 3
 
-variable kafka_vm_prefix = "kafka"
+kafka_vm_prefix = "kafka"
 
-kafka_broker {
+kafka_broker = {
     cpu = 16
     memory_gb = 64
     os_disk_gb = 100
@@ -47,7 +47,7 @@ kafka_broker {
     data_disk_gb = 250
 }
 
-kafka_zookeeper {
+kafka_zookeeper = {
     cpu = 4
     memory_gb = 8
     os_disk_gb = 100
@@ -55,13 +55,13 @@ kafka_zookeeper {
     data_disk_gb = 100
 }
 
-kafka_connect {
+kafka_connect = {
     cpu = 8
     memory_gb = 8
     os_disk_gb = 100
 }
 
-kafka_control_center {
+kafka_control_center = {
     cpu = 8
     memory_gb = 16
     os_disk_gb = 100
