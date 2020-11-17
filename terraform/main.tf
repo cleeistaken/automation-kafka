@@ -11,7 +11,7 @@ provider "vsphere" {
 module "kafka" {
   source = "./modules/kafka"
 
-  count = length(var.vsphere_clusters)
+  count = 1 #length(var.vsphere_clusters)
 
   # Clusters
   vsphere_cluster_index = count.index

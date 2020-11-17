@@ -45,9 +45,8 @@ variable vsphere_clusters {
         # Public Portgroup IPv4 subnet in CIDR notation (e.g. 10.0.0.0/24)
         vs_dvs_pg_public_ipv4_subnet = string
 
-        # Public Portgroup IPv4 address based on the subnet
-        # Ref. https://www.terraform.io/docs/configuration/functions/cidrhost.html
-        vs_dvs_pg_public_ipv4_start_hostnum = number
+        # Public Portgroup IPv4 addresses
+        vs_dvs_pg_public_ipv4_ips = list(string)
 
         # Public Portgroup IPv4 gateway address
         vs_dvs_pg_public_ipv4_gw = string
@@ -58,9 +57,8 @@ variable vsphere_clusters {
         # Private Portgroup IPv4 subnet in CIDR notation (e.g. 10.0.0.0/24)
         vs_dvs_pg_private_ipv4_subnet = string
 
-        # Private Portgroup IPv4 address based on the subnet
-        # Ref. https://www.terraform.io/docs/configuration/functions/cidrhost.html
-        vs_dvs_pg_private_ipv4_start_hostnum = number
+        # Private Portgroup IPv4 addresses
+        vs_dvs_pg_private_ipv4_ips = list(string)
 
         # vSphere vSAN datastore
         vs_ds = string

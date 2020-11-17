@@ -51,8 +51,7 @@ data "vsphere_virtual_machine" "vs_vm_template" {
 #
 locals {
   control_center_prefix = format("%s-control-center-%02d", var.kafka_vm_prefix, (var.vsphere_cluster_index + 1))
-  control_center_ip_public_offset = var.vsphere_cluster.vs_dvs_pg_public_ipv4_start_hostnum
-  control_center_ip_private_offset = var.vsphere_cluster.vs_dvs_pg_private_ipv4_start_hostnum
+  control_center_ip_offset = 0
 }
 
 resource "vsphere_virtual_machine" "kafka_control_center" {
@@ -105,7 +104,7 @@ resource "vsphere_virtual_machine" "kafka_control_center" {
       }
 
       network_interface {
-        ipv4_address = cidrhost(var.vsphere_cluster.vs_dvs_pg_public_ipv4_subnet, (local.control_center_ip_public_offset + count.index))
+        ipv4_address = var.vsphere_cluster.vs_dvs_pg_public_ipv4_ips[(local.control_center_ip_offset + count.index)]
         ipv4_netmask = regex("/([0-9]{1,2})$", var.vsphere_cluster.vs_dvs_pg_public_ipv4_subnet)[0]
       }
 
@@ -121,8 +120,7 @@ resource "vsphere_virtual_machine" "kafka_control_center" {
 #
 locals {
   broker_prefix = format("%s-broker-%02d", var.kafka_vm_prefix, (var.vsphere_cluster_index + 1))
-  broker_ip_public_offset = var.vsphere_cluster.vs_dvs_pg_public_ipv4_start_hostnum + 1
-  broker_ip_private_offset = var.vsphere_cluster.vs_dvs_pg_private_ipv4_start_hostnum + 1
+  broker_ip_offset = local.control_center_ip_offset + 1
 }
 
 resource "vsphere_virtual_machine" "kafka_broker" {
@@ -189,12 +187,12 @@ resource "vsphere_virtual_machine" "kafka_broker" {
       }
 
       network_interface {
-        ipv4_address = cidrhost(var.vsphere_cluster.vs_dvs_pg_public_ipv4_subnet, (local.broker_ip_public_offset + count.index))
+        ipv4_address = var.vsphere_cluster.vs_dvs_pg_public_ipv4_ips[(local.broker_ip_offset + count.index)]
         ipv4_netmask = regex("/([0-9]{1,2})$", var.vsphere_cluster.vs_dvs_pg_public_ipv4_subnet)[0]
       }
 
       network_interface {
-        ipv4_address = cidrhost(var.vsphere_cluster.vs_dvs_pg_private_ipv4_subnet, (local.broker_ip_private_offset + count.index))
+        ipv4_address = var.vsphere_cluster.vs_dvs_pg_private_ipv4_ips[(local.broker_ip_offset + count.index)]
         ipv4_netmask = regex("/([0-9]{1,2})$", var.vsphere_cluster.vs_dvs_pg_private_ipv4_subnet)[0]
       }
 
@@ -211,8 +209,7 @@ resource "vsphere_virtual_machine" "kafka_broker" {
 #
 locals {
   zookeeper_prefix = format("%s-zookeeper-%02d", var.kafka_vm_prefix, (var.vsphere_cluster_index + 1))
-  zookeeper_ip_public_offset = var.vsphere_cluster.vs_dvs_pg_public_ipv4_start_hostnum + 1 + var.kafka_broker_count_per_cluster
-  zookeeper_ip_private_offset = var.vsphere_cluster.vs_dvs_pg_private_ipv4_start_hostnum + 1 + var.kafka_broker_count_per_cluster
+  zookeeper_ip_offset = local.broker_ip_offset + var.kafka_broker_count_per_cluster
 }
 
 resource "vsphere_virtual_machine" "kafka_zookeeper" {
@@ -279,12 +276,12 @@ resource "vsphere_virtual_machine" "kafka_zookeeper" {
       }
 
       network_interface {
-        ipv4_address = cidrhost(var.vsphere_cluster.vs_dvs_pg_public_ipv4_subnet, (local.zookeeper_ip_public_offset + count.index))
+        ipv4_address = var.vsphere_cluster.vs_dvs_pg_public_ipv4_ips[(local.zookeeper_ip_offset + count.index)]
         ipv4_netmask = regex("/([0-9]{1,2})$", var.vsphere_cluster.vs_dvs_pg_public_ipv4_subnet)[0]
       }
 
       network_interface {
-        ipv4_address = cidrhost(var.vsphere_cluster.vs_dvs_pg_private_ipv4_subnet, (local.zookeeper_ip_private_offset + count.index))
+        ipv4_address = var.vsphere_cluster.vs_dvs_pg_private_ipv4_ips[(local.zookeeper_ip_offset + count.index)]
         ipv4_netmask = regex("/([0-9]{1,2})$", var.vsphere_cluster.vs_dvs_pg_private_ipv4_subnet)[0]
       }
 
@@ -300,8 +297,7 @@ resource "vsphere_virtual_machine" "kafka_zookeeper" {
 #
 locals {
   connect_prefix = format("%s-connect-%02d", var.kafka_vm_prefix, (var.vsphere_cluster_index + 1))
-  connect_ip_public_offset = var.vsphere_cluster.vs_dvs_pg_public_ipv4_start_hostnum + 1 + var.kafka_broker_count_per_cluster + var.kafka_zookeeper_count_per_cluster
-  connect_ip_private_offset = var.vsphere_cluster.vs_dvs_pg_private_ipv4_start_hostnum + 1 + var.kafka_broker_count_per_cluster + var.kafka_zookeeper_count_per_cluster
+  connect_ip_offset = local.zookeeper_ip_offset + var.kafka_zookeeper_count_per_cluster
 }
 
 resource "vsphere_virtual_machine" "kafka_connect" {
@@ -344,7 +340,7 @@ resource "vsphere_virtual_machine" "kafka_connect" {
       }
 
       network_interface {
-        ipv4_address = cidrhost(var.vsphere_cluster.vs_dvs_pg_public_ipv4_subnet, (local.connect_ip_public_offset + count.index))
+        ipv4_address = var.vsphere_cluster.vs_dvs_pg_public_ipv4_ips[(local.connect_ip_offset + count.index)]
         ipv4_netmask = regex("/([0-9]{1,2})$", var.vsphere_cluster.vs_dvs_pg_public_ipv4_subnet)[0]
       }
 
