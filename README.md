@@ -1,6 +1,6 @@
-# vmware-lab-work
+# Confluent Apache Kafka
 
-This project encompasses a terraform and ansible environment to set up Kafka and monitoring tools.
+This project expands on the original work from Chris Matta @ Confluen (https://github.com/cjmatta). It encompasses Terraform and Ansible automation to set up Kafka and monitoring tools.
 
 ## Prerequisites
 * Python 3
