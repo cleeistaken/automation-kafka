@@ -38,7 +38,7 @@ This is the linux system used to invoke Terraform and Ansible in order to create
     ```
     cd ~
     git clone https://github.com/cleeistaken/automation-kafka.git
-    cd automation-cockroach
+    cd automation-kafka
     ````
 
 4. Create a Python virtual environment.
