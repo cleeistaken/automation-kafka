@@ -1,0 +1,34 @@
+---
+- name: Setup Testing Parameters
+  hosts:
+    - localhost
+  vars:
+
+  tasks:
+    - set_fact:
+        topic: "{{ test_prefix }}-{{ partitions }}-{{ replication }}-{{ inventory_hostname }}"
+        timestamp: "{{ ansible_date_time.iso8601_basic_short }}"
+        bootstrap: "{{ hostvars['localhost']['groups']['kafka_broker'][0] }}:{{ kafka_broker_custom_listeners.external.port }}"
+        clients: "{{ hostvars['localhost']['groups']['kafka_broker'][0] }}:{{ kafka_broker_custom_listeners.external.port }}"
+
+- name: Setup Topic
+  gather_facts: no
+  hosts:
+    - kafka_connect
+  vars:
+    foo: bla
+
+  tasks:
+    - debug:
+        msg: "Bootstrap server: {{ bootstrap }}"
+
+    - debug:
+        msg: "Preparing topic {{ topic_name }}"
+
+    - name: Check if topic {{ topic_name }} exists
+      command: >-
+        kafka-topics
+        --bootstrap-server {{bootstrap}}
+        --list
+        --topic {{ topic_name }}
+      register: topiclist

@@ -1,0 +1,48 @@
+---
+- name: disable firewalld
+      systemd:
+        name: firewalld
+        state: stopped
+        enabled: no
+
+    - name: install epel-release
+      yum:
+        name: epel-release
+        state: latest
+
+    - name: install centos 7 requirements
+      yum:
+        name:
+          - policycoreutils-python
+      when: ansible_distribution == 'CentOS' and ansible_distribution_version >= '7' and ansible_distribution_version < '8'
+
+    - name: install centos 8 requirements
+      yum:
+        name:
+          - python3-policycoreutils
+          - policycoreutils-python-utils
+      when: ansible_distribution == 'CentOS' and ansible_distribution_version >= '8'
+
+    - name: install seport prerequisite
+      yum:
+        name: policycoreutils-python
+      when: ansible_os_family == "RedHat" and ansible_distribution_version >= '7' and ansible_distribution_version < '8'
+
+    - name: install python requirements
+      yum:
+        name:
+          - python3
+          - python3-pip
+          - python3-setuptools
+
+    - name: update pip to latest
+      pip:
+        name:
+          - pip
+        state: latest
+
+    - name: update setuptools to latest
+      pip:
+        name:
+          - setuptools
+        state: latest

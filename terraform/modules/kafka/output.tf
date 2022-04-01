@@ -1,4 +1,4 @@
-output "kafka" {
+output "kafka_env" {
   value = {
     "cluster_id" = var.vsphere_cluster_index + 1
     "cluster" = {

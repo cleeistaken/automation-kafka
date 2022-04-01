@@ -3,6 +3,15 @@ variable vsphere_cluster_index {
   default = 0
 }
 
+variable template {
+  type = map(any)
+}
+
+variable template_boot {
+  type = string
+  default = "efi"
+}
+
 variable vsphere_cluster {
   type = object({
     # vSphere Datacenter
@@ -17,40 +26,35 @@ variable vsphere_cluster {
     # vSphere Distributed Virtual Switch
     vs_dvs = string
 
-    # vSphere Distributed Portgroup for the public/routed network
-    vs_dvs_pg_public = string
+    # vSphere Distributed Portgroup
+    vs_dvs_pg_1 = string
 
-    # Public Portgroup IPv4 subnet in CIDR notation (e.g. 10.0.0.0/24)
-    vs_dvs_pg_public_ipv4_subnet = string
+    # Portgroup 1 IPv4 subnet in CIDR notation (e.g. 10.0.0.0/24)
+    vs_dvs_pg_1_ipv4_subnet = string
 
-    # Public Portgroup IPv4 address based on the subnet
-    # Ref. https://www.terraform.io/docs/configuration/functions/cidrhost.html
-    vs_dvs_pg_public_ipv4_start_hostnum = number
+    # Portgroup 1 IPv4 addresses
+    vs_dvs_pg_1_ipv4_ips = list(string)
 
-    # Public Portgroup IPv4 gateway address
-    vs_dvs_pg_public_ipv4_gw = string
+    # Portgroup 1 IPv4 gateway address
+    vs_dvs_pg_1_ipv4_gw = string
 
-    # vSphere Distributed Portgroup for the private network
-    vs_dvs_pg_private = string
+    # vSphere Distributed Portgroup
+    vs_dvs_pg_2 = string
 
-    # Private Portgroup IPv4 subnet in CIDR notation (e.g. 10.0.0.0/24)
-    vs_dvs_pg_private_ipv4_subnet = string
+    # Portgroup 2 IPv4 subnet in CIDR notation (e.g. 10.0.0.0/24)
+    vs_dvs_pg_2_ipv4_subnet = string
 
-    # Private Portgroup IPv4 address based on the subnet
-    # Ref. https://www.terraform.io/docs/configuration/functions/cidrhost.html
-    vs_dvs_pg_private_ipv4_start_hostnum = number
+    # Portgroup 2 IPv4 addresses
+    vs_dvs_pg_2_ipv4_ips = list(string)
+
+    # Portgroup 2 IPv4 gateway address
+    vs_dvs_pg_2_ipv4_gw = string
 
     # vSphere vSAN datastore
     vs_ds = string
 
     # vSphere vSAN Storage Policy
     vs_ds_sp = string
-
-    # Virtual Machine template to clone from
-    vs_vm_template = string
-
-    # Virtual Machine template boot mode (bios/efi)
-    vs_vm_template_boot = string
 
     # Virtual machine domain name
     vs_vm_domain = string

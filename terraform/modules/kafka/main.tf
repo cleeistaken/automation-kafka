@@ -30,20 +30,20 @@ data "vsphere_distributed_virtual_switch" "vs_dvs" {
 }
 
 data "vsphere_network" "vs_dvs_pg_public" {
-  name = var.vsphere_cluster.vs_dvs_pg_public
+  name = var.vsphere_cluster.vs_dvs_pg_1
   datacenter_id = data.vsphere_datacenter.vs_dc.id
   distributed_virtual_switch_uuid = data.vsphere_distributed_virtual_switch.vs_dvs.id
 }
 
 data "vsphere_network" "vs_dvs_pg_private" {
-  name = var.vsphere_cluster.vs_dvs_pg_private
+  name = var.vsphere_cluster.vs_dvs_pg_2
   datacenter_id = data.vsphere_datacenter.vs_dc.id
   distributed_virtual_switch_uuid = data.vsphere_distributed_virtual_switch.vs_dvs.id
 }
 
-data "vsphere_virtual_machine" "vs_vm_template" {
-  name = var.vsphere_cluster.vs_vm_template
-  datacenter_id = data.vsphere_datacenter.vs_dc.id
+variable "ovf_map" {
+  type    = list(string)
+  default = ["eth0", "eth1", "eth2", "eth3"]
 }
 
 #
@@ -51,8 +51,6 @@ data "vsphere_virtual_machine" "vs_vm_template" {
 #
 locals {
   control_center_prefix = format("%s-control-center-%02d", var.kafka_vm_prefix, (var.vsphere_cluster_index + 1))
-  control_center_ip_public_offset = var.vsphere_cluster.vs_dvs_pg_public_ipv4_start_hostnum
-  control_center_ip_private_offset = var.vsphere_cluster.vs_dvs_pg_private_ipv4_start_hostnum
 }
 
 resource "vsphere_virtual_machine" "kafka_control_center" {
@@ -60,10 +58,10 @@ resource "vsphere_virtual_machine" "kafka_control_center" {
   name = format("%s-%02d", local.control_center_prefix, count.index + 1)
 
   # VM template
-  guest_id = data.vsphere_virtual_machine.vs_vm_template.guest_id
+  #guest_id = data.vsphere_virtual_machine.vs_vm_template.guest_id
 
   # Template boot mode (efi or bios)
-  firmware = var.vsphere_cluster.vs_vm_template_boot
+  firmware = var.template_boot
 
   # Resource pool for created VM
   resource_pool_id = vsphere_resource_pool.vs_rp.id
@@ -81,6 +79,7 @@ resource "vsphere_virtual_machine" "kafka_control_center" {
 
   network_interface {
     network_id = data.vsphere_network.vs_dvs_pg_public.id
+    ovf_mapping = "eth0"
   }
 
   disk {
@@ -96,7 +95,7 @@ resource "vsphere_virtual_machine" "kafka_control_center" {
   }
 
   clone {
-    template_uuid = data.vsphere_virtual_machine.vs_vm_template.id
+    template_uuid = var.template.id
 
     customize {
       linux_options {
@@ -105,11 +104,11 @@ resource "vsphere_virtual_machine" "kafka_control_center" {
       }
 
       network_interface {
-        ipv4_address = cidrhost(var.vsphere_cluster.vs_dvs_pg_public_ipv4_subnet, (local.control_center_ip_public_offset + count.index))
-        ipv4_netmask = regex("/([0-9]{1,2})$", var.vsphere_cluster.vs_dvs_pg_public_ipv4_subnet)[0]
+        ipv4_address = var.vsphere_cluster.vs_dvs_pg_1_ipv4_ips[0]
+        ipv4_netmask = regex("/([0-9]{1,2})$", var.vsphere_cluster.vs_dvs_pg_1_ipv4_subnet)[0]
       }
 
-      ipv4_gateway = var.vsphere_cluster.vs_dvs_pg_public_ipv4_gw
+      ipv4_gateway = var.vsphere_cluster.vs_dvs_pg_1_ipv4_gw
       dns_server_list = var.vsphere_cluster.vs_vm_dns
       dns_suffix_list = var.vsphere_cluster.vs_vm_dns_suffix
     }
@@ -121,8 +120,7 @@ resource "vsphere_virtual_machine" "kafka_control_center" {
 #
 locals {
   broker_prefix = format("%s-broker-%02d", var.kafka_vm_prefix, (var.vsphere_cluster_index + 1))
-  broker_ip_public_offset = var.vsphere_cluster.vs_dvs_pg_public_ipv4_start_hostnum + 1
-  broker_ip_private_offset = var.vsphere_cluster.vs_dvs_pg_private_ipv4_start_hostnum + 1
+  broker_ip_offset = 1
 }
 
 resource "vsphere_virtual_machine" "kafka_broker" {
@@ -130,10 +128,10 @@ resource "vsphere_virtual_machine" "kafka_broker" {
   name = format("%s-%02d", local.broker_prefix, count.index + 1)
 
   # VM template
-  guest_id = data.vsphere_virtual_machine.vs_vm_template.guest_id
+  #guest_id = data.vsphere_virtual_machine.vs_vm_template.guest_id
 
   # Template boot mode (efi or bios)
-  firmware = var.vsphere_cluster.vs_vm_template_boot
+  firmware = var.template_boot
 
   # Resource pool for created VM
   resource_pool_id = vsphere_resource_pool.vs_rp.id
@@ -151,10 +149,19 @@ resource "vsphere_virtual_machine" "kafka_broker" {
 
   network_interface {
     network_id = data.vsphere_network.vs_dvs_pg_public.id
+    ovf_mapping    = "eth0"
   }
 
-  network_interface {
-    network_id = data.vsphere_network.vs_dvs_pg_private.id
+  #network_interface {
+  #  network_id = data.vsphere_network.vs_dvs_pg_private.id
+  #}
+
+  dynamic "network_interface" {
+    for_each = range(1, 2)
+    content {
+      network_id = data.vsphere_network.vs_dvs_pg_private.id
+      ovf_mapping = var.ovf_map[network_interface.value]
+    }
   }
 
   # Although it is possible to add multiple disk controllers, there is
@@ -180,7 +187,7 @@ resource "vsphere_virtual_machine" "kafka_broker" {
   }
 
   clone {
-    template_uuid = data.vsphere_virtual_machine.vs_vm_template.id
+    template_uuid = var.template.id
 
     customize {
       linux_options {
@@ -189,16 +196,16 @@ resource "vsphere_virtual_machine" "kafka_broker" {
       }
 
       network_interface {
-        ipv4_address = cidrhost(var.vsphere_cluster.vs_dvs_pg_public_ipv4_subnet, (local.broker_ip_public_offset + count.index))
-        ipv4_netmask = regex("/([0-9]{1,2})$", var.vsphere_cluster.vs_dvs_pg_public_ipv4_subnet)[0]
+        ipv4_address = var.vsphere_cluster.vs_dvs_pg_1_ipv4_ips[local.broker_ip_offset + count.index]
+        ipv4_netmask = regex("/([0-9]{1,2})$", var.vsphere_cluster.vs_dvs_pg_1_ipv4_subnet)[0]
       }
 
       network_interface {
-        ipv4_address = cidrhost(var.vsphere_cluster.vs_dvs_pg_private_ipv4_subnet, (local.broker_ip_private_offset + count.index))
-        ipv4_netmask = regex("/([0-9]{1,2})$", var.vsphere_cluster.vs_dvs_pg_private_ipv4_subnet)[0]
+        ipv4_address = var.vsphere_cluster.vs_dvs_pg_2_ipv4_ips[local.broker_ip_offset + count.index]
+        ipv4_netmask = regex("/([0-9]{1,2})$", var.vsphere_cluster.vs_dvs_pg_2_ipv4_subnet)[0]
       }
 
-      ipv4_gateway = var.vsphere_cluster.vs_dvs_pg_public_ipv4_gw
+      ipv4_gateway = var.vsphere_cluster.vs_dvs_pg_1_ipv4_gw
       dns_server_list = var.vsphere_cluster.vs_vm_dns
       dns_suffix_list = var.vsphere_cluster.vs_vm_dns_suffix
 
@@ -211,8 +218,8 @@ resource "vsphere_virtual_machine" "kafka_broker" {
 #
 locals {
   zookeeper_prefix = format("%s-zookeeper-%02d", var.kafka_vm_prefix, (var.vsphere_cluster_index + 1))
-  zookeeper_ip_public_offset = var.vsphere_cluster.vs_dvs_pg_public_ipv4_start_hostnum + 1 + var.kafka_broker_count_per_cluster
-  zookeeper_ip_private_offset = var.vsphere_cluster.vs_dvs_pg_private_ipv4_start_hostnum + 1 + var.kafka_broker_count_per_cluster
+  zookeeper_ip_offset = local.broker_ip_offset + var.kafka_broker_count_per_cluster
+
 }
 
 resource "vsphere_virtual_machine" "kafka_zookeeper" {
@@ -220,10 +227,11 @@ resource "vsphere_virtual_machine" "kafka_zookeeper" {
   name = format("%s-%02d", local.zookeeper_prefix, count.index + 1)
 
   # VM template
-  guest_id = data.vsphere_virtual_machine.vs_vm_template.guest_id
+  #guest_id = data.vsphere_virtual_machine.vs_vm_template.guest_id
+  guest_id = "centos8_64Guest" # data.vsphere_virtual_machine.vs_vm_template.guest_id
 
   # Template boot mode (efi or bios)
-  firmware = var.vsphere_cluster.vs_vm_template_boot
+  firmware = var.template_boot
 
   # Resource pool for created VM
   resource_pool_id = vsphere_resource_pool.vs_rp.id
@@ -241,10 +249,15 @@ resource "vsphere_virtual_machine" "kafka_zookeeper" {
 
   network_interface {
     network_id = data.vsphere_network.vs_dvs_pg_public.id
+    ovf_mapping = "eth0"
   }
 
-  network_interface {
-    network_id = data.vsphere_network.vs_dvs_pg_private.id
+  dynamic "network_interface" {
+    for_each = range(1, 2)
+    content {
+      network_id = data.vsphere_network.vs_dvs_pg_private.id
+      ovf_mapping = "eth1"
+    }
   }
 
   # Although it is possible to add multiple disk controllers, there is
@@ -270,7 +283,7 @@ resource "vsphere_virtual_machine" "kafka_zookeeper" {
   }
 
   clone {
-    template_uuid = data.vsphere_virtual_machine.vs_vm_template.id
+    template_uuid = var.template.id
 
     customize {
       linux_options {
@@ -279,16 +292,16 @@ resource "vsphere_virtual_machine" "kafka_zookeeper" {
       }
 
       network_interface {
-        ipv4_address = cidrhost(var.vsphere_cluster.vs_dvs_pg_public_ipv4_subnet, (local.zookeeper_ip_public_offset + count.index))
-        ipv4_netmask = regex("/([0-9]{1,2})$", var.vsphere_cluster.vs_dvs_pg_public_ipv4_subnet)[0]
+        ipv4_address = var.vsphere_cluster.vs_dvs_pg_1_ipv4_ips[local.zookeeper_ip_offset + count.index]
+        ipv4_netmask = regex("/([0-9]{1,2})$", var.vsphere_cluster.vs_dvs_pg_1_ipv4_subnet)[0]
       }
 
       network_interface {
-        ipv4_address = cidrhost(var.vsphere_cluster.vs_dvs_pg_private_ipv4_subnet, (local.zookeeper_ip_private_offset + count.index))
-        ipv4_netmask = regex("/([0-9]{1,2})$", var.vsphere_cluster.vs_dvs_pg_private_ipv4_subnet)[0]
+        ipv4_address = var.vsphere_cluster.vs_dvs_pg_2_ipv4_ips[local.zookeeper_ip_offset + count.index]
+        ipv4_netmask = regex("/([0-9]{1,2})$", var.vsphere_cluster.vs_dvs_pg_2_ipv4_subnet)[0]
       }
 
-      ipv4_gateway = var.vsphere_cluster.vs_dvs_pg_public_ipv4_gw
+      ipv4_gateway = var.vsphere_cluster.vs_dvs_pg_1_ipv4_gw
       dns_server_list = var.vsphere_cluster.vs_vm_dns
       dns_suffix_list = var.vsphere_cluster.vs_vm_dns_suffix
     }
@@ -300,8 +313,7 @@ resource "vsphere_virtual_machine" "kafka_zookeeper" {
 #
 locals {
   connect_prefix = format("%s-connect-%02d", var.kafka_vm_prefix, (var.vsphere_cluster_index + 1))
-  connect_ip_public_offset = var.vsphere_cluster.vs_dvs_pg_public_ipv4_start_hostnum + 1 + var.kafka_broker_count_per_cluster + var.kafka_zookeeper_count_per_cluster
-  connect_ip_private_offset = var.vsphere_cluster.vs_dvs_pg_private_ipv4_start_hostnum + 1 + var.kafka_broker_count_per_cluster + var.kafka_zookeeper_count_per_cluster
+  connect_ip_offset = local.zookeeper_ip_offset + var.kafka_zookeeper_count_per_cluster
 }
 
 resource "vsphere_virtual_machine" "kafka_connect" {
@@ -309,10 +321,10 @@ resource "vsphere_virtual_machine" "kafka_connect" {
   name = format("%s-%02d", local.connect_prefix, count.index + 1)
 
   # VM template
-  guest_id = data.vsphere_virtual_machine.vs_vm_template.guest_id
+  #guest_id = data.vsphere_virtual_machine.vs_vm_template.guest_id
 
   # Template boot mode (efi or bios)
-  firmware = var.vsphere_cluster.vs_vm_template_boot
+  firmware = var.template_boot
 
   # Resource pool for created VM
   resource_pool_id = vsphere_resource_pool.vs_rp.id
@@ -326,6 +338,7 @@ resource "vsphere_virtual_machine" "kafka_connect" {
 
   network_interface {
     network_id = data.vsphere_network.vs_dvs_pg_public.id
+    ovf_mapping = "eth0"
   }
 
   disk {
@@ -335,7 +348,7 @@ resource "vsphere_virtual_machine" "kafka_connect" {
   }
 
   clone {
-    template_uuid = data.vsphere_virtual_machine.vs_vm_template.id
+    template_uuid = var.template.id
 
     customize {
       linux_options {
@@ -344,18 +357,18 @@ resource "vsphere_virtual_machine" "kafka_connect" {
       }
 
       network_interface {
-        ipv4_address = cidrhost(var.vsphere_cluster.vs_dvs_pg_public_ipv4_subnet, (local.connect_ip_public_offset + count.index))
-        ipv4_netmask = regex("/([0-9]{1,2})$", var.vsphere_cluster.vs_dvs_pg_public_ipv4_subnet)[0]
+        ipv4_address = var.vsphere_cluster.vs_dvs_pg_1_ipv4_ips[local.connect_ip_offset + count.index]
+        ipv4_netmask = regex("/([0-9]{1,2})$", var.vsphere_cluster.vs_dvs_pg_1_ipv4_subnet)[0]
       }
 
-      ipv4_gateway = var.vsphere_cluster.vs_dvs_pg_public_ipv4_gw
+      ipv4_gateway = var.vsphere_cluster.vs_dvs_pg_1_ipv4_gw
       dns_server_list = var.vsphere_cluster.vs_vm_dns
       dns_suffix_list = var.vsphere_cluster.vs_vm_dns_suffix
     }
   }
 }
 
-# Anti-afinity rules for Brokers and Zookeepers
+# Anti-affinity rules for Brokers and Zookeepers
 resource "vsphere_compute_cluster_vm_anti_affinity_rule" "kafka_broker_anti_affinity_rule" {
   count               = var.kafka_broker_count_per_cluster > 0 ? 1 : 0
   name                = "kafka-broker-anti-affinity-rule"

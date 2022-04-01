@@ -9,7 +9,7 @@
 - include_tasks: debian.yml
   when: ansible_distribution == "Debian"
 
-- name: Disable Require TTY in Sudoers (required for ansible synchronize)
+- name: Disable Require TTY in Sudoers (required for ansible-orig synchronize)
   lineinfile:
     path: /etc/sudoers
     state: absent

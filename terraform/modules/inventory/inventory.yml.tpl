@@ -4,7 +4,7 @@
 ---
 all:
   hosts:
-%{ for item in kafka ~}%{ for types in item.kafka.cluster ~}%{ for vm in types ~}
+%{ for item in kafka ~}%{ for types in item.cluster ~}%{ for vm in types ~}
     ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
       name: ${ vm.name }
       hostname: ${ vm.clone[0].customize[0].linux_options[0].host_name }.${ vm.clone[0].customize[0].linux_options[0].domain }
@@ -14,9 +14,9 @@ all:
     kafka_broker:
       children:
 %{ for item in kafka ~}
-        kafka_broker_${ item.kafka.cluster_id }:
+        kafka_broker_${ item.cluster_id }:
           hosts:
-%{ for vm in item.kafka.cluster.broker ~}
+%{ for vm in item.cluster.broker ~}
             ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
               kafka_broker:
                 datadir:
@@ -24,7 +24,7 @@ all:
                   - /var/lib/kafka/data${ (i - 1) }
 %{ endfor ~}
                 properties:
-                  broker.rack: rack_${ item.kafka.cluster_id }
+                  broker.rack: rack_${ item.cluster_id }
                   default.replication.factor: 3
               # Leave broker ID unset to have it automatically assigned. Uncomment and set if
               # it needs to be set to a specific value.
@@ -41,9 +41,9 @@ all:
     zookeeper:
       children:
 %{ for item in kafka ~}
-        zookeeper_${ item.kafka.cluster_id }:
+        zookeeper_${ item.cluster_id }:
           hosts:
-%{ for vm in item.kafka.cluster.zookeeper ~}
+%{ for vm in item.cluster.zookeeper ~}
             ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
               # Leave zookeeper ID unset to have it automatically assigned. Uncomment and set if
               # it needs to be set to a specific value.
@@ -55,9 +55,9 @@ all:
     control_center:
       children:
 %{ for item in kafka ~}
-        control_center_${ item.kafka.cluster_id }:
+        control_center_${ item.cluster_id }:
           hosts:
-%{ for vm in item.kafka.cluster.control_center ~}
+%{ for vm in item.cluster.control_center ~}
             ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
 %{ endfor ~}
 %{ endfor ~}
@@ -65,9 +65,9 @@ all:
     kafka_connect:
       children:
 %{ for item in kafka ~}
-        kafka_connect_${ item.kafka.cluster_id }:
+        kafka_connect_${ item.cluster_id }:
           hosts:
-%{ for vm in item.kafka.cluster.connect ~}
+%{ for vm in item.cluster.connect ~}
             ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
 %{ endfor ~}
 %{ endfor ~}

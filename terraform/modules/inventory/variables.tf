@@ -1,4 +1,4 @@
-variable "kafka" {
+variable "input" {
   description = "A map of inventory group names to IP addresses."
 }
 
