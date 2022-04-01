@@ -1,5 +1,0 @@
----
-- name: Common Configuration
-  hosts: all
-  roles:
-    - common

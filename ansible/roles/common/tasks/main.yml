@@ -1,0 +1,43 @@
+---
+- name: Print distribution
+  ansible.builtin.debug:
+    msg: "The system distribution is: {{ ansible_distribution }}"
+
+- name: Print parameters
+  ansible.builtin.debug:
+    msg: |
+      Upgrade packages: {{ system_upgrade_all_packages }}
+      Create hosts file: {{ system_hosts_file_create }}
+      Disable firewall: {{ system_firewall_disable }}
+      Disable SELinux: {{ system_selinux_disable }}
+      Extend OS LVM: {{ system_extend_os_lvm }}
+      Mount data disks: {{ system_mount_data_disks }}
+      Create user account: {{ system_create_account }}
+
+- name: Upgrade all system packages
+  include_tasks: upgrade_system_packages.yml
+  when: system_upgrade_all_packages | default(default_system_upgrade_all_packages)
+
+- name: Update hosts file
+  include_tasks: update_hosts_file.yml
+  when: system_hosts_file_create | default(default_system_hosts_file_create)
+
+- name: Disable firewall
+  include_tasks: disable_firewall.yml
+  when: system_firewall_disable | default(default_system_firewall_disable)
+
+- name: Disable SELinux
+  include_tasks: disable_selinux.yml
+  when: system_selinux_disable | default(default_system_selinux_disable)
+
+- name: Extend OS LVM
+  include_tasks: extend_os_lvm.yml
+  when: system_extend_os_lvm | default(default_system_extend_os_lvm)
+
+- name: Partition, format, and mount data disks
+  include_tasks: create_data_disks.yml
+  when: system_mount_data_disks | default(default_system_mount_data_disks)
+
+- name: Create user account
+  include_tasks: create_system_user.yml
+  when: system_create_account | default(default_system_create_account)

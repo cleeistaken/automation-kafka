@@ -1,6 +1,0 @@
----
-- name: extend root lvm partition
-  include: extend_lvm.yml
-
-- name: initialize disks
-  include: initialize_disks.yml

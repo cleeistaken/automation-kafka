@@ -1,5 +1,0 @@
----
-- name: restart schema-registry
-  systemd:
-    name: "{{schema_registry_service_name}}"
-    state: restarted

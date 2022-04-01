@@ -1,9 +1,0 @@
-### Ansible ###
-*.retry
-
-### Generated Files ###
-inventory.yml
-results/*
-
-### OSX ###
-.DS_Store

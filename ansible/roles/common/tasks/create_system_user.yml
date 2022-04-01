@@ -1,0 +1,66 @@
+---
+- name: Fail on unexpected distributions
+  ansible.builtin.assert:
+    that:
+      - ansible_distribution == 'CentOS' or
+        ansible_distribution == 'Debian' or
+        ansible_distribution == 'RedHat' or
+        ansible_distribution == 'Ubuntu'
+    fail_msg: "Unexpected distribution: {{ ansible_distribution }}"
+    success_msg: "Supported distribution"
+
+- name: Set OS options CentOS
+  set_fact:
+    shell_path: /usr/bin/bash
+    sudo_group: wheel
+  when: ansible_distribution == 'CentOS' or
+        ansible_distribution == 'RedHat'
+
+- name: Set OS options Ubuntu
+  set_fact:
+    shell_path: /usr/bin/bash
+    sudo_group: sudo
+  when: ansible_distribution == 'Debian' or 
+        ansible_distribution == 'Ubuntu'
+
+- name: Create password hash salt
+  set_fact:
+    hash_salt: "{{ lookup('community.general.random_string', length=16, min_lower=1, min_upper=1, special=false, min_numeric=1) }}"
+
+- name: Set account variables
+  set_fact:
+    account_username: "{{ system_create_account_username | default(default_system_create_account_username) }}"
+    account_password: "{{ system_create_account_password | default(default_system_create_account_password) }}"
+
+- name: Validate username and password are defined
+  ansible.builtin.assert:
+    that: account_username is defined and account_password is defined
+    fail_msg: "Both 'system_create_account_username' and 'system_create_account_password' must be defined"
+    success_msg: "Both username and password are defined"
+
+- name: Validate username is not empty
+  ansible.builtin.assert:
+    that: account_username | length >= 3
+    fail_msg: "'system_user_username' must not be empty and at least 3 characters"
+    success_msg: "The username appears valid"
+
+- name: Validate password is not empty
+  ansible.builtin.assert:
+    that: account_password | length >= 6
+    fail_msg: "'system_user_password' must not be empty and at least 6 characters"
+    success_msg: "The password appears valid"
+
+- name: "Create user {{ account_username }}"
+  ansible.builtin.user:
+    name: "{{ account_username }}"
+    password: "{{ account_password | password_hash('sha512', hash_salt) }}"
+    shell: "{{ shell_path }}"
+    groups: "{{ sudo_group }}"
+    append: yes
+
+- name: Set authorized key
+  ansible.posix.authorized_key:
+    user: "{{ account_username }}"
+    key: "{{ lookup('file', system_user_ssh_key_file) }}"
+    state: present
+  when: system_user_ssh_key_file is defined

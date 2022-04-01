@@ -1,0 +1,44 @@
+---
+- name: Upgrade all packages CentOS or Redhat
+  yum:
+    name: '*'
+    state: latest # noqa package-latest
+  when: ansible_distribution == 'CentOS' or
+        ansible_distribution == 'RedHat'
+
+- name: Install yum-utils CentOS or RedHat
+  yum:
+    name: yum-utils
+    state: present
+  when: ansible_distribution == 'CentOS' or
+        ansible_distribution == 'RedHat'
+
+- name: Check if reboot is needed for CentOS or Redhat
+  command: needs-restarting
+  register: restart_required
+  failed_when: restart_required.rc not in [0, 1]
+  when: ansible_distribution == 'CentOS' or
+        ansible_distribution == 'RedHat'
+
+- name: Upgrade all packages Ubuntu or Debian
+  apt:
+    upgrade: dist
+    update_cache: yes
+    force_apt_get: yes
+  when: ansible_distribution == 'Debian' or 
+        ansible_distribution == 'Ubuntu'
+
+- name: Check if a reboot is needed for Debian or Ubuntu
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+    get_md5: no
+  register: reboot_required_file
+  when: ansible_distribution == 'Debian' or 
+        ansible_distribution == 'Ubuntu'
+
+- name: Perform reboot if required
+  reboot:
+    reboot_timeout: 300
+  when: >
+    ((ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu') and (reboot_required_file is defined and reboot_required_file.stat.exists)) or
+    ((ansible_distribution == 'CentOS' or ansible_distribution == 'RedHat') and (restart_required is defined and restart_required.rc == 1))

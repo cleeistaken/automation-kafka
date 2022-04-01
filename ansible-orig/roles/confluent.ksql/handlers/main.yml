@@ -1,5 +1,0 @@
----
-- name: restart ksql
-  systemd:
-    name: "{{ksql_service_name}}"
-    state: restarted
