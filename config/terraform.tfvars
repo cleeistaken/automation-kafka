@@ -109,14 +109,14 @@ network_dns_suffix = ["isvlab.vmware.com"]
 #
 # Kafka
 #
-kafka_control_center = {
+vm_kafka_control_center = {
     cpu = 8
     memory_gb = 16
     os_disk_gb = 100
     data_disk_gb = 100
 }
 
-kafka_broker = {
+vm_kafka_broker = {
     cpu = 16
     memory_gb = 64
     os_disk_gb = 100
@@ -124,7 +124,7 @@ kafka_broker = {
     data_disk_gb = 250
 }
 
-kafka_zookeeper = {
+vm_kafka_zookeeper = {
     cpu = 4
     memory_gb = 8
     os_disk_gb = 100
@@ -132,7 +132,7 @@ kafka_zookeeper = {
     data_disk_gb = 100
 }
 
-kafka_connect = {
+vm_kafka_connect = {
     cpu = 8
     memory_gb = 8
     os_disk_gb = 40
