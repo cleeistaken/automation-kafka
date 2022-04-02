@@ -4,7 +4,7 @@
 ---
 all:
   hosts:
-%{ for item in kafka ~}%{ for types in item.cluster ~}%{ for vm in types ~}
+%{ for item in vms ~}%{ for types in item.cluster ~}%{ for vm in types ~}
     ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
       name: ${ vm.name }
       hostname: ${ vm.clone[0].customize[0].linux_options[0].host_name }.${ vm.clone[0].customize[0].linux_options[0].domain }
@@ -13,7 +13,7 @@ all:
   children:
     kafka_broker:
       children:
-%{ for item in kafka ~}
+%{ for item in vms ~}
         kafka_broker_${ item.cluster_id }:
           hosts:
 %{ for vm in item.cluster.broker ~}
@@ -40,7 +40,7 @@ all:
 
     zookeeper:
       children:
-%{ for item in kafka ~}
+%{ for item in vms ~}
         zookeeper_${ item.cluster_id }:
           hosts:
 %{ for vm in item.cluster.zookeeper ~}
@@ -64,7 +64,7 @@ all:
 
     kafka_connect:
       children:
-%{ for item in kafka ~}
+%{ for item in vms ~}
         kafka_connect_${ item.cluster_id }:
           hosts:
 %{ for vm in item.cluster.connect ~}
