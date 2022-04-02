@@ -104,3 +104,36 @@ network_ipv4_dns_servers = ["172.16.16.16", "172.16.16.17"]
 
 # DNS suffix search list
 network_dns_suffix = ["isvlab.vmware.com"]
+
+#
+# Kafka
+#
+kafka_control_center = {
+    cpu = 8
+    memory_gb = 16
+    os_disk_gb = 100
+    data_disk_gb = 100
+}
+
+kafka_broker = {
+    cpu = 16
+    memory_gb = 64
+    os_disk_gb = 100
+    data_disk_count = 2
+    data_disk_gb = 250
+}
+
+kafka_zookeeper = {
+    cpu = 4
+    memory_gb = 8
+    os_disk_gb = 100
+    data_disk_count = 1
+    data_disk_gb = 100
+}
+
+kafka_connect = {
+    cpu = 8
+    memory_gb = 8
+    os_disk_gb = 40
+}
+
