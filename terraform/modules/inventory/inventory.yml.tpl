@@ -15,87 +15,83 @@ all:
     ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
       name: ${ vm.name }
       hostname: ${ vm.clone[0].customize[0].linux_options[0].host_name }.${ vm.clone[0].customize[0].linux_options[0].domain }
+      uuid: ${ vm.id }
 %{ endfor ~}%{ endfor ~}%{ endfor ~}
 
   children:
     control_center:
-      children:
 %{ for item in vms ~}
-        hosts:
+      hosts:
 %{ for vm in item.control_center ~}
-          ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
-            hostname: ${ vm.name }
-            uuid: ${ vm.id }
-            fqdn: ${ vm.clone[0].customize[0].linux_options[0].host_name }.${ vm.clone[0].customize[0].linux_options[0].domain }
-            data_disks:
+        ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
+          hostname: ${ vm.name }
+          fqdn: ${ vm.clone[0].customize[0].linux_options[0].host_name }.${ vm.clone[0].customize[0].linux_options[0].domain }
+          uuid: ${ vm.id }
+          data_disks:
 %{ for i in range(1, length(vm.disk)) ~}
-              - sd${ ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n"][i] }
+            - sd${ ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n"][i] }
 %{ endfor ~}
 %{ endfor ~}%{ endfor ~}
 
     kafka_broker:
-      children:
 %{ for item in vms ~}
-        hosts:
+      hosts:
 %{ for vm in item.broker ~}
-          ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
-            hostname: ${ vm.name }
-            uuid: ${ vm.id }
-            fqdn: ${ vm.clone[0].customize[0].linux_options[0].host_name }.${ vm.clone[0].customize[0].linux_options[0].domain }
-            data_disks:
+        ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
+          hostname: ${ vm.name }
+          fqdn: ${ vm.clone[0].customize[0].linux_options[0].host_name }.${ vm.clone[0].customize[0].linux_options[0].domain }
+          uuid: ${ vm.id }
+          data_disks:
 %{ for i in range(1, length(vm.disk)) ~}
-              - sd${ ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n"][i] }
+            - sd${ ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n"][i] }
 %{ endfor ~}
-            kafka_broker:
-              datadir:
+          kafka_broker:
+            datadir:
 %{ for i in range(1, length(vm.disk)) ~}
-                - /data${ (i - 1) }
+              - /data${ (i - 1) }
 %{ endfor ~}
-              properties:
-                broker.rack: rack_1
-                default.replication.factor: 3
-              # Leave broker ID unset to have it automatically assigned. Uncomment and set if
-              # it needs to be set to a specific value.
-              # https://kafka.apache.org/20/documentation.html
-              # broker_id: 0
-              kafka_broker_custom_listeners:
-                broker:
-                  hostname: ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }
-                internal:
-                  hostname: ${ vm.clone[0].customize[0].network_interface[1].ipv4_address }
+            properties:
+              broker.rack: rack_1
+              default.replication.factor: 3
+            # Leave broker ID unset to have it automatically assigned. Uncomment and set if
+            # it needs to be set to a specific value.
+            # https://kafka.apache.org/20/documentation.html
+            # broker_id: 0
+            kafka_broker_custom_listeners:
+              broker:
+                hostname: ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }
+              internal:
+                hostname: ${ vm.clone[0].customize[0].network_interface[1].ipv4_address }
 %{ endfor ~}%{ endfor ~}
 
     zookeeper:
-      children:
 %{ for item in vms ~}
-        hosts:
+      hosts:
 %{ for vm in item.zookeeper ~}
-          ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
-            hostname: ${ vm.name }
-            uuid: ${ vm.id }
-            fqdn: ${ vm.clone[0].customize[0].linux_options[0].host_name }.${ vm.clone[0].customize[0].linux_options[0].domain }
-            data_disks:
+        ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
+          hostname: ${ vm.name }
+          fqdn: ${ vm.clone[0].customize[0].linux_options[0].host_name }.${ vm.clone[0].customize[0].linux_options[0].domain }
+          uuid: ${ vm.id }
+          data_disks:
 %{ for i in range(1, length(vm.disk)) ~}
-              - sd${ ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n"][i] }
+            - sd${ ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n"][i] }
 %{ endfor ~}
-            # Leave zookeeper ID unset to have it automatically assigned. Uncomment and set if
-            # it needs to be set to a specific value.
-            # https://kafka.apache.org/20/documentation.html
-            # zookeeper_id: -1
+          # Leave zookeeper ID unset to have it automatically assigned. Uncomment and set if
+          # it needs to be set to a specific value.
+          # https://kafka.apache.org/20/documentation.html
+          # zookeeper_id: -1
 %{ endfor ~}%{ endfor ~}
 
     kafka_connect:
-      children:
 %{ for item in vms ~}
-        hosts:
+      hosts:
 %{ for vm in item.connect ~}
-          ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
-            hostname: ${ vm.name }
-            uuid: ${ vm.id }
-            fqdn: ${ vm.clone[0].customize[0].linux_options[0].host_name }.${ vm.clone[0].customize[0].linux_options[0].domain }
+        ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
+          hostname: ${ vm.name }
+          fqdn: ${ vm.clone[0].customize[0].linux_options[0].host_name }.${ vm.clone[0].customize[0].linux_options[0].domain }
+          uuid: ${ vm.id }
 %{ endfor ~}%{ endfor ~}
 
 #
 # EOF
 #
-
