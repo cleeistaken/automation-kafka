@@ -2,7 +2,7 @@
 
 ANSIBLE_INVENTORY="../config/inventory.yml"
 ANSIBLE="../config/settings.yml"
-ANSIBLE_TEMPLATE="../config/settings-template.yml"
+ANSIBLE_TEMPLATE="../config/ansible-template.yml"
 
 
 if [ ! -f "${ANSIBLE_INVENTORY}" ]; then
@@ -10,7 +10,7 @@ if [ ! -f "${ANSIBLE_INVENTORY}" ]; then
     exit 1
 fi
 
-if [ ! -f "${ANSIBLE_MSSQL}" ]; then
+if [ ! -f "${ANSIBLE}" ]; then
     echo "ERROR: The file ${ANSIBLE_MSSQL} is missing."
     exit 1
 fi
