@@ -17,6 +17,13 @@ all:
         hosts:
 %{ for vm in item.control_center ~}
           ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
+            hostname: ${ vm.name }
+            uuid: ${ vm.id }
+            fqdn: ${ vm.clone[0].customize[0].linux_options[0].host_name }.${ vm.clone[0].customize[0].linux_options[0].domain }
+            data_disks:
+%{ for i in range(1, length(vm.disk)) ~}
+              - sd${ ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n"][i] }
+%{ endfor ~}
 %{ endfor ~}%{ endfor ~}
 
     kafka_broker:
@@ -25,6 +32,13 @@ all:
         hosts:
 %{ for vm in item.broker ~}
           ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
+            hostname: ${ vm.name }
+            uuid: ${ vm.id }
+            fqdn: ${ vm.clone[0].customize[0].linux_options[0].host_name }.${ vm.clone[0].customize[0].linux_options[0].domain }
+            data_disks:
+%{ for i in range(1, length(vm.disk)) ~}
+              - sd${ ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n"][i] }
+%{ endfor ~}
             kafka_broker:
               datadir:
 %{ for i in range(1, length(vm.disk)) ~}
@@ -50,6 +64,13 @@ all:
         hosts:
 %{ for vm in item.zookeeper ~}
           ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
+            hostname: ${ vm.name }
+            uuid: ${ vm.id }
+            fqdn: ${ vm.clone[0].customize[0].linux_options[0].host_name }.${ vm.clone[0].customize[0].linux_options[0].domain }
+            data_disks:
+%{ for i in range(1, length(vm.disk)) ~}
+              - sd${ ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n"][i] }
+%{ endfor ~}
             # Leave zookeeper ID unset to have it automatically assigned. Uncomment and set if
             # it needs to be set to a specific value.
             # https://kafka.apache.org/20/documentation.html
@@ -62,6 +83,9 @@ all:
         hosts:
 %{ for vm in item.connect ~}
           ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
+            hostname: ${ vm.name }
+            uuid: ${ vm.id }
+            fqdn: ${ vm.clone[0].customize[0].linux_options[0].host_name }.${ vm.clone[0].customize[0].linux_options[0].domain }
 %{ endfor ~}%{ endfor ~}
 
 #
