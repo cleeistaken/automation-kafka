@@ -4,7 +4,7 @@
 ---
 all:
   hosts:
-%{ for item in vms ~}%{ for types in item.cluster ~}%{ for vm in types ~}
+%{ for item in vms ~}%{ for types in item ~}%{ for vm in types ~}
     ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
       name: ${ vm.name }
       hostname: ${ vm.clone[0].customize[0].linux_options[0].host_name }.${ vm.clone[0].customize[0].linux_options[0].domain }
