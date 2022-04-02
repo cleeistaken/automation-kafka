@@ -109,6 +109,10 @@ network_dns_suffix = ["isvlab.vmware.com"]
 #
 # Kafka
 #
+vm_kafka_broker_count_per_cluster = 1
+vm_kafka_zookeeper_count_per_cluster = 1
+vm_kafka_connect_count_per_cluster = 1
+
 vm_kafka_control_center = {
     cpu = 8
     memory_gb = 16
