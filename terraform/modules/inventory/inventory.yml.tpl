@@ -60,7 +60,7 @@ all:
       children:
 %{ for item in vms ~}
         hosts:
-%{ for vm in item.cluster.connect ~}
+%{ for vm in item.connect ~}
           ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
 %{ endfor ~}%{ endfor ~}
 
