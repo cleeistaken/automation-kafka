@@ -11,21 +11,28 @@ all:
 %{ endfor ~}%{ endfor ~}%{ endfor ~}
 
   children:
+    control_center:
+      children:
+%{ for item in vms ~}
+        hosts:
+%{ for vm in item.control_center ~}
+          ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
+%{ endfor ~}%{ endfor ~}
+
     kafka_broker:
       children:
 %{ for item in vms ~}
-        kafka_broker_${ item.cluster_id }:
-          hosts:
-%{ for vm in item.cluster.broker ~}
-            ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
-              kafka_broker:
-                datadir:
+        hosts:
+%{ for vm in item.broker ~}
+          ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
+            kafka_broker:
+              datadir:
 %{ for i in range(1, length(vm.disk)) ~}
-                  - /data${ (i - 1) }
+                - /data${ (i - 1) }
 %{ endfor ~}
-                properties:
-                  broker.rack: rack_${ item.cluster_id }
-                  default.replication.factor: 3
+              properties:
+                broker.rack: rack_${ item.cluster_id }
+                default.replication.factor: 3
               # Leave broker ID unset to have it automatically assigned. Uncomment and set if
               # it needs to be set to a specific value.
               # https://kafka.apache.org/20/documentation.html
@@ -35,42 +42,27 @@ all:
                   hostname: ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }
                 internal:
                   hostname: ${ vm.clone[0].customize[0].network_interface[1].ipv4_address }
-%{ endfor ~}
-%{ endfor ~}
+%{ endfor ~}%{ endfor ~}
 
     zookeeper:
       children:
 %{ for item in vms ~}
-        zookeeper_${ item.cluster_id }:
-          hosts:
-%{ for vm in item.cluster.zookeeper ~}
-            ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
-              # Leave zookeeper ID unset to have it automatically assigned. Uncomment and set if
-              # it needs to be set to a specific value.
-              # https://kafka.apache.org/20/documentation.html
-              # zookeeper_id: -1
-%{ endfor ~}
-%{ endfor ~}
-
-    control_center:
-      children:
-%{ for item in vms ~}
-        control_center_${ item.cluster_id }:
-          hosts:
-%{ for vm in item.cluster.control_center ~}
-            ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
-%{ endfor ~}
-%{ endfor ~}
+        hosts:
+%{ for vm in item.zookeeper ~}
+          ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
+            # Leave zookeeper ID unset to have it automatically assigned. Uncomment and set if
+            # it needs to be set to a specific value.
+            # https://kafka.apache.org/20/documentation.html
+            # zookeeper_id: -1
+%{ endfor ~}%{ endfor ~}
 
     kafka_connect:
       children:
 %{ for item in vms ~}
-        kafka_connect_${ item.cluster_id }:
-          hosts:
+        hosts:
 %{ for vm in item.cluster.connect ~}
-            ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
-%{ endfor ~}
-%{ endfor ~}
+          ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
+%{ endfor ~}%{ endfor ~}
 
 #
 # EOF
