@@ -4,7 +4,7 @@ TERRAFORM="../config/terraform.tfvars"
 TERRAFORM_TEMPLATE="../config/terraform-template.tfvars"
 TERRAFORM_TFPLAN="tfplan"
 
-if [ ! -f "${TERRAFORM" ]; then
+if [ ! -f "${TERRAFORM}" ]; then
     echo "ERROR: The file ${TERRAFORM} is missing."
     exit 1
 fi
