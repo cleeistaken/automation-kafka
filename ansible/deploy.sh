@@ -1,7 +1,7 @@
 #!/bin/bash 
 
 ANSIBLE_INVENTORY="../config/inventory.yml"
-ANSIBLE_MSSQL="../config/settings.yml"
+ANSIBLE="../config/settings.yml"
 ANSIBLE_TEMPLATE="../config/settings-template.yml"
 
 

@@ -3,6 +3,13 @@
 #
 ---
 all:
+  vars:
+    vcenter:
+      host: ${ vsphere_server }
+      username: ${ user }
+      password: ${ password }
+      allow_unverified_ssl: ${ allow_unverified_ssl }
+
   hosts:
 %{ for item in vms ~}%{ for types in item ~}%{ for vm in types ~}
     ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }:
