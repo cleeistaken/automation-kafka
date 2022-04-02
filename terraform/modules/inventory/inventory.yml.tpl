@@ -54,7 +54,7 @@ all:
 
     control_center:
       children:
-%{ for item in kafka ~}
+%{ for item in vms ~}
         control_center_${ item.cluster_id }:
           hosts:
 %{ for vm in item.cluster.control_center ~}
