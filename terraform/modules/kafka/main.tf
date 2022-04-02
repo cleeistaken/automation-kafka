@@ -27,12 +27,12 @@ data "vsphere_datastore" "vsphere_datastore_1" {
 }
 
 data "vsphere_network" "vs_dvs_pg_public" {
-  name = var.vsphere_network_1_ipv4_subnet_cidr
+  name = var.vsphere_network_1_portgroup
   datacenter_id = data.vsphere_datacenter.vsphere_datacenter_1.id
 }
 
 data "vsphere_network" "vs_dvs_pg_private" {
-  name = var.vsphere_network_2_ipv4_subnet_cidr
+  name = var.vsphere_network_2_portgroup
   datacenter_id = data.vsphere_datacenter.vsphere_datacenter_1.id
 }
 
