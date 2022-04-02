@@ -151,5 +151,3 @@ variable vm_kafka_connect {
     os_disk_gb = number
   })
 }
-
-

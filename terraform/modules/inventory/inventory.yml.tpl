@@ -21,7 +21,7 @@ all:
               kafka_broker:
                 datadir:
 %{ for i in range(1, length(vm.disk)) ~}
-                  - /var/lib/kafka/data${ (i - 1) }
+                  - /data${ (i - 1) }
 %{ endfor ~}
                 properties:
                   broker.rack: rack_${ item.cluster_id }
@@ -31,7 +31,7 @@ all:
               # https://kafka.apache.org/20/documentation.html
               # broker_id: 0
               kafka_broker_custom_listeners:
-                external:
+                broker:
                   hostname: ${ vm.clone[0].customize[0].network_interface[0].ipv4_address }
                 internal:
                   hostname: ${ vm.clone[0].customize[0].network_interface[1].ipv4_address }

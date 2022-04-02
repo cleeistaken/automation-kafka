@@ -17,6 +17,7 @@ vcenter_password = "P@ssword123!"
 # Allow unverified SSL connection
 vcenter_insecure_ssl = true
 
+
 #
 # vSphere Configuration
 #
