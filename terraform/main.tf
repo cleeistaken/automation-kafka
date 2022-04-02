@@ -48,9 +48,9 @@ module "kafka" {
   vsphere_network_1_ipv4_subnet_cidr = var.vsphere_network_1_ipv4_subnet_cidr
   vsphere_network_1_ipv4_ips = var.vsphere_network_1_ipv4_ips
   vsphere_network_1_ipv4_gateway = var.vsphere_network_1_ipv4_gateway
-  vsphere_network_2_portgroup = var.vsphere_network_1_portgroup
-  vsphere_network_2_ipv4_subnet_cidr = var.vsphere_network_1_ipv4_subnet_cidr
-  vsphere_network_2_ipv4_ips = var.vsphere_network_1_ipv4_ips
+  vsphere_network_2_portgroup = var.vsphere_network_2_portgroup
+  vsphere_network_2_ipv4_subnet_cidr = var.vsphere_network_2_ipv4_subnet_cidr
+  vsphere_network_2_ipv4_ips = var.vsphere_network_2_ipv4_ips
   vsphere_datastore = var.vsphere_datastore
 
   # Network
