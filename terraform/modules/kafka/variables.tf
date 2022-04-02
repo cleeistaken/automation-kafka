@@ -1,93 +1,130 @@
-variable vsphere_cluster_index {
-  type = number
-  default = 0
+#
+# vSphere Variables
+# -----------------------------------------------------------------------------
+# Datacenter
+variable "vsphere_datacenter" {
+  type = string
 }
 
+# Cluster
+variable "vsphere_compute_cluster" {
+  type = string
+}
+
+# Resource Pool
+variable "vsphere_resource_pool" {
+  type = string
+}
+
+# Network 1 Distributed Portgroup
+variable "vsphere_network_1_portgroup" {
+  type = string
+}
+
+# Network 1 IPv4 Subnet (CIDR)
+variable "vsphere_network_1_ipv4_subnet_cidr" {
+  type = string
+}
+
+# Network 1 IPv4 IP List
+variable "vsphere_network_1_ipv4_ips" {
+  type = list(string)
+}
+
+# Network 1 IPv4 Gateway
+variable "vsphere_network_1_ipv4_gateway" {
+  type = string
+}
+
+# Network 2 Distributed Portgroup
+variable "vsphere_network_2_portgroup" {
+  type = string
+}
+
+# Network 2 IPv4 Subnet (CIDR)
+variable "vsphere_network_2_ipv4_subnet_cidr" {
+  type = string
+}
+
+# Network 2 IPv4 IP List
+variable "vsphere_network_2_ipv4_ips" {
+  type = list(string)
+}
+
+# Datastore
+variable "vsphere_datastore" {
+  type = string
+}
+
+variable "vsphere_folder_vm" {
+  type = string
+  default = "mssql-linux"
+}
+
+#
+# Network
+# -----------------------------------------------------------------------------
+# Domain Name
+variable "network_domain_name" {
+  type = string
+}
+
+# Domain Name
+variable "network_ipv4_dns_servers" {
+  type    = list(string)
+  default = ["8.8.8.8", "8.8.4.4"]
+}
+
+# Domain Name
+variable "network_dns_suffix" {
+  type    = list(string)
+  default = []
+}
+
+#
+# Template
+# -----------------------------------------------------------------------------
 variable template {
-  type = map(any)
+  type = map
 }
 
 variable template_boot {
   type = string
-  default = "efi"
 }
 
-variable vsphere_cluster {
-  type = object({
-    # vSphere Datacenter
-    vs_dc = string
-
-    # vSphere Cluster in the Datacenter
-    vs_cls = string
-
-    # vSphere Resource Pool
-    vs_rp = string
-
-    # vSphere Distributed Virtual Switch
-    vs_dvs = string
-
-    # vSphere Distributed Portgroup
-    vs_dvs_pg_1 = string
-
-    # Portgroup 1 IPv4 subnet in CIDR notation (e.g. 10.0.0.0/24)
-    vs_dvs_pg_1_ipv4_subnet = string
-
-    # Portgroup 1 IPv4 addresses
-    vs_dvs_pg_1_ipv4_ips = list(string)
-
-    # Portgroup 1 IPv4 gateway address
-    vs_dvs_pg_1_ipv4_gw = string
-
-    # vSphere Distributed Portgroup
-    vs_dvs_pg_2 = string
-
-    # Portgroup 2 IPv4 subnet in CIDR notation (e.g. 10.0.0.0/24)
-    vs_dvs_pg_2_ipv4_subnet = string
-
-    # Portgroup 2 IPv4 addresses
-    vs_dvs_pg_2_ipv4_ips = list(string)
-
-    # Portgroup 2 IPv4 gateway address
-    vs_dvs_pg_2_ipv4_gw = string
-
-    # vSphere vSAN datastore
-    vs_ds = string
-
-    # vSphere vSAN Storage Policy
-    vs_ds_sp = string
-
-    # Virtual machine domain name
-    vs_vm_domain = string
-
-    # Virtual Machine DNS servers
-    vs_vm_dns = list(string)
-
-    # Virtual Machine DNS suffixes
-    vs_vm_dns_suffix = list(string)
-  })
-}
-
-variable kafka_broker_count_per_cluster {
-  type = number
-  default = 4
-}
-
-variable kafka_zookeeper_count_per_cluster {
-  type = number
-  default = 3
-}
-
-variable kafka_connect_count_per_cluster {
-  type = number
-  default = 3
-}
-
-variable kafka_vm_prefix {
+#
+# VM Kafka
+# -----------------------------------------------------------------------------
+variable "vm_kafka_prefix" {
   type = string
   default = "kafka"
 }
 
-variable kafka_broker {
+variable vm_kafka_broker_count_per_cluster {
+  type = number
+  default = 4
+}
+
+variable vm_kafka_zookeeper_count_per_cluster {
+  type = number
+  default = 3
+}
+
+variable vm_kafka_connect_count_per_cluster {
+  type = number
+  default = 3
+}
+
+variable vm_kafka_control_center {
+  type = object({
+    cpu = number
+    memory_gb = number
+    os_disk_gb = number
+    data_disk_gb = number
+  })
+}
+
+variable vm_kafka_broker {
   type = object({
     cpu = number
     memory_gb = number
@@ -97,7 +134,7 @@ variable kafka_broker {
   })
 }
 
-variable kafka_zookeeper {
+variable vm_kafka_zookeeper {
   type = object({
     cpu = number
     memory_gb = number
@@ -107,7 +144,7 @@ variable kafka_zookeeper {
   })
 }
 
-variable kafka_connect {
+variable vm_kafka_connect {
   type = object({
     cpu = number
     memory_gb = number
@@ -115,11 +152,4 @@ variable kafka_connect {
   })
 }
 
-variable kafka_control_center {
-  type = object({
-    cpu = number
-    memory_gb = number
-    os_disk_gb = number
-    data_disk_gb = number
-  })
-}
+
