@@ -146,6 +146,9 @@ resource "vsphere_virtual_machine" "kafka_broker" {
   # Template boot mode (efi or bios)
   firmware = var.template_boot
 
+  # VM Folder
+  folder = vsphere_folder.vsphere_folder_1.path
+
   # Resource pool for created VM
   resource_pool_id = vsphere_resource_pool.vsphere_resource_pool_1.id
 
@@ -234,6 +237,9 @@ resource "vsphere_virtual_machine" "kafka_zookeeper" {
   # Template boot mode (efi or bios)
   firmware = var.template_boot
 
+  # VM Folder
+  folder = vsphere_folder.vsphere_folder_1.path
+
   # Resource pool for created VM
   resource_pool_id = vsphere_resource_pool.vsphere_resource_pool_1.id
 
@@ -320,6 +326,9 @@ resource "vsphere_virtual_machine" "kafka_connect" {
 
   # Template boot mode (efi or bios)
   firmware = var.template_boot
+
+  # VM Folder
+  folder = vsphere_folder.vsphere_folder_1.path
 
   # Resource pool for created VM
   resource_pool_id = vsphere_resource_pool.vsphere_resource_pool_1.id
