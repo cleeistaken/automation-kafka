@@ -122,7 +122,7 @@ resource "vsphere_virtual_machine" "kafka_control_center" {
       }
 
       network_interface {
-        ipv4_address = var.vsphere_network_1_ipv4_ips.vs_dvs_pg_1_ipv4_ips[local.control_center_public_ip_offset]
+        ipv4_address = var.vsphere_network_1_ipv4_ips[local.control_center_public_ip_offset]
         ipv4_netmask = regex("/([0-9]{1,2})$", var.vsphere_network_1_ipv4_subnet_cidr)[0]
       }
 
