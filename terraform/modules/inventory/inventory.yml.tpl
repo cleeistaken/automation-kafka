@@ -31,7 +31,7 @@ all:
                 - /data${ (i - 1) }
 %{ endfor ~}
               properties:
-                broker.rack: rack_${ item.cluster_id }
+                broker.rack: rack_1
                 default.replication.factor: 3
               # Leave broker ID unset to have it automatically assigned. Uncomment and set if
               # it needs to be set to a specific value.
