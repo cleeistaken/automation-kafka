@@ -30,11 +30,11 @@ vsphere_compute_cluster = "wdc-w02-cl01"
 
 # vSphere VM Folder containing the created VM.
 # This resource must not exist and will be created by Terraform. <---
-vsphere_folder_vm = "mssql"
+vsphere_folder_vm = "kafka"
 
 # vSphere Resource Pool where the VM will be created.
 # This resource must not exist and will be created by Terraform. <---
-vsphere_resource_pool = "mssql"
+vsphere_resource_pool = "kafka"
 
 # vSphere Distributed Switch PortGroup 1.
 # This resource must exist.
