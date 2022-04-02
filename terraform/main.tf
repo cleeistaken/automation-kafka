@@ -26,7 +26,8 @@ module "template" {
   vsphere_datastore = var.vsphere_datastore
 
   # Template
-  content_library_name = var.template_name
+  content_library_name = var.content_library_name
+  content_library_description = var.content_library_description
   content_library_item_url = format("http://%s/templates/%s", data.external.local_ip.result.ip, var.template_ova)
   content_library_item_name = var.template_name
   content_library_item_description = var.template_description
