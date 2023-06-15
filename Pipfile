@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+ansible = "==6.7.0"
+ansible-core = "==2.13.7"
+influxdb-client = "*"
+docker = "*"
+pyyaml = "*"
+asyncssh = "*"
+numpy = "*"
+matplotlib = "*"
+pandas = "*"
+requests = "*"
+
+[dev-packages]
+black = "*"
+
+[requires]
+python_version = "3"

@@ -1,0 +1,27 @@
+---
+name: 400GB_RF3_30MB_S
+
+# Topic Configuration
+# http://kafka.apache.org/documentation.html#topicconfigs
+partitions: 16
+replication_factor: 3
+retention_ms: 10800000             # 3 hours
+min_insync_replicas: 2             # Minimum number of replicas that must acknowledge a write to be considered successful.
+num_topics: 4
+
+# Producer Configuration
+# http://kafka.apache.org/documentation.html#producerconfigs
+acks: all                          # This means the leader will wait for the full set of in-sync replicas to acknowledge the record.
+buffer_memory: 67108864            # 64MB
+batch_size: 64000
+compression_type: "none"           # No producer compression
+record_size: 1024                  # 1KB
+throughput: 307200                 # 1KB * 1024 + 300 = 300MB/sec
+num_records_producer: 100000000    # 100000000 msg x  1024 bytes/msg = ~96GB
+num_producers: 4                   # ~96GB x 4 = ~400GB * RF 3 = 1.2TB
+
+# Consumer Configuration
+# http://kafka.apache.org/documentation.html#consumerconfigs
+num_records_consumer: 100000000
+show_detailed_stats: True
+num_consumers: 4

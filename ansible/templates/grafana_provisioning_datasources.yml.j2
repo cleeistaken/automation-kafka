@@ -1,0 +1,17 @@
+---
+apiVersion: 1
+
+datasources:
+- name: vSphere
+  type: influxdb
+  access: proxy
+  url: {{ influx_host }}
+  isDefault: true
+  jsonData:
+    version: Flux
+    httpMode: POST
+    organization: {{ influx_org }}
+    defaultBucket: {{ influx_bucket }}
+    tlsSkipVerify: true
+  secureJsonData:
+    token: {{ influx_token }}

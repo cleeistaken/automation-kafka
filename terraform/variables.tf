@@ -1,141 +1,304 @@
 #
-# vSphere vCenter Server
+# vCenter
 #
-variable vcenter_server {
-    description = "vCenter Server hostname or IP"
-    type = string
+variable "vcenter_server" {
+  description = "vCenter Server hostname or IP"
+  type = string
 }
 
-variable vcenter_user {
-    description = "vCenter Server username"
-    type = string
+variable "vcenter_user" {
+  description = "vCenter Server username"
+  type = string
 }
 
-variable vcenter_password {
-    description = "vCenter Server password"
-    type = string
+variable "vcenter_password" {
+  description = "vCenter Server password"
+  type = string
 }
 
-variable vcenter_insecure_ssl {
-    description = "Allow insecure connection to the vCenter server (unverified SSL certificate)"
-    type = bool
-    default = false
+variable "vcenter_insecure_ssl" {
+  description = "Allow insecure connection to the vCenter server (unverified SSL certificate)"
+  type = bool
+  default = false
 }
 
 #
-# vSphere Clusters
+# vSphere
 #
-variable vsphere_clusters {
-    type = list(object({
-        # vSphere Datacenter
-        vs_dc = string
-
-        # vSphere Cluster in the Datacenter
-        vs_cls = string
-
-        # vSphere Resource Pool
-        vs_rp = string
-
-        # vSphere Distributed Virtual Switch
-        vs_dvs = string
-
-        # vSphere Distributed Portgroup for the public/routed network
-        vs_dvs_pg_public = string
-
-        # Public Portgroup IPv4 subnet in CIDR notation (e.g. 10.0.0.0/24)
-        vs_dvs_pg_public_ipv4_subnet = string
-
-        # Public Portgroup IPv4 addresses
-        vs_dvs_pg_public_ipv4_ips = list(string)
-
-        # Public Portgroup IPv4 gateway address
-        vs_dvs_pg_public_ipv4_gw = string
-
-        # vSphere Distributed Portgroup for the private network
-        vs_dvs_pg_private = string
-
-        # Private Portgroup IPv4 subnet in CIDR notation (e.g. 10.0.0.0/24)
-        vs_dvs_pg_private_ipv4_subnet = string
-
-        # Private Portgroup IPv4 addresses
-        vs_dvs_pg_private_ipv4_ips = list(string)
-
-        # vSphere vSAN datastore
-        vs_ds = string
-
-        # vSphere vSAN Storage Policy
-        vs_ds_sp = string
-
-        # Virtual Machine template to clone from
-        vs_vm_template = string
-
-        # Virtual Machine template boot mode (bios/efi)
-        vs_vm_template_boot = string
-
-        # Virtual machine domain name
-        vs_vm_domain = string
-
-        # Virtual Machine DNS servers
-        vs_vm_dns = list(string)
-
-        # Virtual Machine DNS suffixes
-        vs_vm_dns_suffix = list(string)
-    }))
+variable "vsphere_datacenter" {
+  description = "vsphere datacenter name"
+  type = string
 }
 
-variable kafka_broker_count_per_cluster {
-    type = number
-    default = 4
+variable "vsphere_compute_cluster" {
+  description = "vsphere compute cluster name"
+  type = string
 }
 
-variable kafka_zookeeper_count_per_cluster {
-    type = number
-    default = 3
+variable "vsphere_datastore_name" {
+  description = "vsphere datastore name"
+  type = string
 }
 
-variable kafka_connect_count_per_cluster {
-    type = number
-    default = 3
+variable "vsphere_resource_pool_name" {
+  description = "vsphere resource pool name"
+  type = string
 }
 
-variable kafka_vm_prefix {
-    type = string
-    default = "kafka"
+variable "vsphere_networks" {
+  type = list(object({
+    name = string
+    ovf_mapping = string
+  }))
 }
 
-variable kafka_broker {
-    type = object({
-        cpu = number
-        memory_gb = number
-        os_disk_gb = number
-        data_disk_count = number
-        data_disk_gb = number
-    })
+variable "vsphere_content_library_name" {
+  description = "content library name"
+  type = string
 }
 
-variable kafka_zookeeper {
-    type = object({
-        cpu = number
-        memory_gb = number
-        os_disk_gb = number
-        data_disk_count = number
-        data_disk_gb = number
-    })
+variable "vsphere_content_library_description" {
+  description = "content library description"
+  type = string
+  default = "A new source of content"
 }
 
-variable kafka_connect {
-    type = object({
-        cpu = number
-        memory_gb = number
-        os_disk_gb = number
-    })
+variable "vsphere_content_library_item_name" {
+  description = "name of the content library template"
+  type = string
+  default = "template"
 }
 
-variable kafka_control_center {
-    type = object({
-        cpu = number
-        memory_gb = number
-        os_disk_gb = number
-        data_disk_gb = number
-    })
+variable "vsphere_content_library_item_description" {
+  description = "description of the content library template"
+  type = string
+  default = "Template for terraform automation"
+}
+
+variable "vsphere_content_library_item_file_url" {
+  description = "template url"
+  type = string
+}
+
+#
+# SSH
+#
+variable "rsa_private_key_file" {
+  description = "RSA private key file"
+  type = string
+  default = "~/.ssh/id_rsa"
+}
+
+variable "rsa_public_key_file" {
+  description = "RSA public key file"
+  type = string
+  default = "~/.ssh/id_rsa.pub"
+}
+
+#
+# Cloud Init
+#
+variable "cloud_init_username" {
+  description = "username for the user on the linux system"
+  type = string
+  default = "vmware"
+}
+
+variable "cloud_init_password" {
+  description = "password for the user on the linux system"
+  type = string
+  default = "P@ssword123!"
+}
+
+variable "cloud_init_primary_group" {
+  description = "primary group for the user on the linux system"
+  type = string
+  default = "vmware"
+}
+
+variable "cloud_init_groups" {
+  description = "comma separated list of groups for the user on the linux system"
+  type = string
+  default = "wheel"
+}
+
+variable "cloud_init_user_shell" {
+  description = "user shell"
+  type = string
+  default = "/bin/bash"
+}
+
+#
+# VM
+#
+variable "vm_name_prefix" {
+  description = "vm name prefix"
+  type = string
+  default = "kafka"
+}
+
+variable "vm_firmware" {
+  description = "firmware for the vm efi/bios"
+  type = string
+  default = "efi"
+
+  validation {
+    condition = var.vm_firmware == "bios" || var.vm_firmware == "efi"
+    error_message = "Variable vm_firmware must be 'bios' or 'efi'."
+  }
+}
+
+variable "vm_hardware_version" {
+  description = "vSphere hardware hardware version"
+  type = string
+  default = 19
+
+  validation {
+    condition = var.vm_hardware_version >= 3 && var.vm_hardware_version <= 20
+    error_message = "Variable vm_hardware_version must be between 3 and 20."
+  }
+}
+
+variable "vm_network_ipv4_ips" {
+  type = list(list(object({
+      ipv4_address = string
+      ipv4_netmask = string
+    })))
+}
+
+variable "vm_network_ipv4_gateway" {
+  description = "ipv4 gateway"
+  type = string
+}
+
+variable "vm_network_ipv4_dns_servers" {
+  description = "DNS ip list"
+  type = list(string)
+}
+
+variable "vm_network_domain" {
+  description = "Domain name"
+  type = string
+}
+
+#
+# Kafka Control Center
+#
+variable control_center_cpu_count {
+  description = "Number of Broker vCPU"
+  type = number
+  default = 4
+}
+
+variable control_center_memory_gb {
+  description = "Amount of Broker Memory in GB"
+  type = number
+  default = 8
+}
+
+variable control_center_os_disk_gb {
+  description = "Size of Broker OS Disk in GB"
+  type = number
+  default = 100
+}
+
+#
+# Kafka Broker
+#
+variable broker_count {
+  description = "Number of Brokers"
+  type = number
+  default = 3
+}
+
+variable broker_cpu_count {
+  description = "Number of Broker vCPU"
+  type = number
+  default = 8
+}
+
+variable broker_memory_gb {
+  description = "Amount of Broker Memory in GB"
+  type = number
+  default = 16
+}
+
+variable broker_os_disk_gb {
+  description = "Size of Broker OS Disk in GB"
+  type = number
+  default = 60
+}
+
+variable broker_data_disk_gb {
+  description = "Size of Broker Data Disk(s) in GB"
+  type = number
+  default = 250
+}
+
+variable broker_data_disk_count {
+  description = "Number of Broker Data Disks"
+  type = number
+  default = 4
+}
+
+#
+# Kafka Zookeeper
+#
+variable zookeeper_count {
+  description = "Number of Zookeepers"
+  type = number
+  default = 3
+}
+
+variable zookeeper_cpu_count {
+  description = "Number of Broker vCPU"
+  type = number
+  default = 4
+}
+
+variable zookeeper_memory_gb {
+  description = "Amount of Broker Memory in GB"
+  type = number
+  default = 12
+}
+
+variable zookeeper_os_disk_gb {
+  description = "Size of Broker OS Disk in GB"
+  type = number
+  default = 100
+}
+
+#
+# Kafka Connect
+#
+variable connect_count {
+  description = "Number of Connects"
+  type = number
+  default = 3
+}
+
+variable connect_cpu_count {
+  description = "Number of Broker vCPU"
+  type = number
+  default = 8
+}
+
+variable connect_memory_gb {
+  description = "Amount of Broker Memory in GB"
+  type = number
+  default = 8
+}
+
+variable connect_os_disk_gb {
+  description = "Size of Broker OS Disk in GB"
+  type = number
+  default = 80
+}
+
+#
+# Inventory
+#
+variable "output_folder" {
+  type = string
+  description = "The path to use when saving the rendered inventory file."
 }

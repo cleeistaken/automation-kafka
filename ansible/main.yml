@@ -1,0 +1,225 @@
+---
+- name: Wait for systems to boot up
+  hosts: all
+  gather_facts: no
+  any_errors_fatal: true
+  tasks:
+    - name: Wait up to 300 seconds
+      wait_for_connection:
+        delay: 3
+        sleep: 5
+        timeout: 300
+
+- name: Red Hat Registation
+  hosts: all
+  any_errors_fatal: true
+  gather_facts: no
+  become: yes
+  tasks:
+    - name: Fetch selected facts
+      ansible.builtin.setup:
+        filter:
+          - 'ansible_distribution'
+
+    - name: disable firewalld
+      ansible.builtin.service:
+        name: firewalld
+        enabled: no
+        state: stopped
+      when: ansible_distribution == 'RedHat'
+
+    - name: Register with activationkey and consume subscriptions
+      community.general.redhat_subscription:
+        state: present
+          #force_register: yes
+        activationkey: automation-kafka
+        org_id: 16794691
+          #pool_ids:
+          #- 2c94cfaa86a4481c0186a8746288199d
+      when: ansible_distribution == 'RedHat'
+
+#- name: Configure systems for DSE (VMXNET3 v7)
+#  hosts: all
+#  gather_facts: yes
+#  any_errors_fatal: true
+#  become: yes
+#  tasks:
+#    - name: Fail on unexpected distributions
+#      ansible.builtin.assert:
+#        that:
+#          - ansible_distribution == 'Ubuntu'
+#        fail_msg: "Unexpected distribution: {{ ansible_distribution }}"
+#        success_msg: "Supported distribution"
+#
+#    - name: Stop and disable ufw
+#      community.general.ufw:
+#        state: disabled
+#      when: ansible_distribution == 'Debian' or
+#            ansible_distribution == 'Ubuntu'
+#
+#    - name: Add repo for new kernels
+#      ansible.builtin.apt_repository:
+#        repo: ppa:cappelikan/ppa
+#
+#    - name: Install mainline
+#      ansible.builtin.apt:
+#        name: mainline
+#        update_cache: yes
+#
+#    - name: Install latest kernel using mainline
+#      ansible.builtin.command: mainline --install-latest --yes
+#      register: rc
+#      changed_when: '"A reboot is required to use the new kernel." in rc.stdout'
+#
+#    - name: Reboot to activate new kernel
+#      ansible.builtin.reboot:
+#        reboot_timeout: 300
+#      when: rc.changed
+
+- name: Install node_exporter on all hosts
+  hosts: all
+  gather_facts: yes
+  any_errors_fatal: true
+  become: yes
+  become_method: "sudo"
+  become_flags: "su - -c"
+  tags: nodexporter
+  roles:
+    - prometheus.prometheus.node_exporter
+
+- name: Configure docker containers
+  hosts: localhost
+  gather_facts: no
+  any_errors_fatal: true
+  become: yes
+  become_method: "sudo"
+  become_flags: "su - -c"
+  vars:
+    grafana_container_name: kafka_grafana
+    grafana_volume_name: kafka_grafana_volume
+    grafana_port: 3000
+    grafana_provisioning_folder: "{{ playbook_dir }}/../config/provisioning"
+    network_name: kafka_testing
+    network_subnet: 172.31.2.0/24
+    network_gateway: 172.31.2.1
+    network_iprange: 172.31.2.0/24
+    prometheus_container_name: kafka_prometheus
+    prometheus_volume_name: kafka_prometheus_volume
+    prometheus_server_port: 9090
+    prometheus_host_port: 9100
+    prometheus_configuration_file: "{{ playbook_dir }}/../config/prometheus.yml"
+    jmxexporter_kafka_broker_port: 8080
+    jmxexporter_zookeeper_port: 8079
+    jmxexporter_connect_port: 8077
+
+  tasks:
+    - name: Set prometheus hosts
+      ansible.builtin.set_fact:
+        prometheus_item: "{{ item }}:{{ prometheus_host_port }}"
+      with_items: "{{ groups['all'] }}"
+      register: prometheus_result
+
+    - name: Create a prometheus host list
+      ansible.builtin.set_fact:
+        prometheus_hosts: "{{ prometheus_result.results | map(attribute='ansible_facts.prometheus_item') | list }}"
+
+    - name: Print prometheus hosts
+      ansible.builtin.debug:
+        var: prometheus_hosts
+
+    - name: Set kafka broker prometheus hosts
+      ansible.builtin.set_fact:
+        kafka_item: "{{ item }}:{{ jmxexporter_kafka_broker_port }}"
+      with_items: "{{ groups['kafka_broker'] }}"
+      register: kafka_result
+
+    - name: Create a kafka broker JMX host list
+      ansible.builtin.set_fact:
+        kafka_jmx_hosts: "{{ kafka_result.results | map(attribute='ansible_facts.kafka_item') | list }}"
+
+    - name: Print kafka broker JMX hosts
+      ansible.builtin.debug:
+        var: kafka_jmx_hosts
+
+    - name: Set zookeeper prometheus hosts
+      ansible.builtin.set_fact:
+        zookeeper_item: "{{ item }}:{{ jmxexporter_zookeeper_port }}"
+      with_items: "{{ groups['zookeeper'] }}"
+      register: zookeeper_result
+
+    - name: Create a zookeeper JMX host list
+      ansible.builtin.set_fact:
+        zookeeper_jmx_hosts: "{{ zookeeper_result.results | map(attribute='ansible_facts.zookeeper_item') | list }}"
+
+    - name: Print zookeeper JMX hosts
+      ansible.builtin.debug:
+        var: zookeeper_jmx_hosts
+
+    - name: Set connect prometheus hosts
+      ansible.builtin.set_fact:
+        kafka_connect_item: "{{ item }}:{{ jmxexporter_connect_port }}"
+      with_items: "{{ groups['kafka_connect'] }}"
+      register: kafka_connect_result
+
+    - name: Create a connect JMX host list
+      ansible.builtin.set_fact:
+        kafka_connect_jmx_hosts: "{{ kafka_connect_result.results | map(attribute='ansible_facts.kafka_connect_item') | list }}"
+
+    - name: Print connect JMX hosts
+      ansible.builtin.debug:
+          var: kafka_connect_jmx_hosts
+
+    - name: Create Prometheus configuration
+      vars:
+        node_exporter_items: "{{ prometheus_hosts }}"
+        kafka_broker_items: "{{ kafka_jmx_hosts }}"
+        zookeeper_items: "{{ zookeeper_jmx_hosts }}"
+        kafka_connect_items: "{{ kafka_connect_jmx_hosts }}"
+      ansible.builtin.template:
+        src: prometheus.yml.j2
+        dest: "{{ prometheus_configuration_file }}"
+      register: prometheus_config
+
+    - name: Create network with custom IPAM config
+      community.docker.docker_network:
+        name: "{{ network_name }}"
+        driver: bridge
+        ipam_config:
+          - subnet: "{{ network_subnet }}"
+            gateway: "{{ network_gateway }}"
+            iprange: "{{ network_iprange }}"
+
+    - name: Create a volume for Prometheus
+      community.docker.docker_volume:
+        name: "{{ prometheus_volume_name }}"
+
+    - name: Create a Prometheus container
+      community.docker.docker_container:
+        name: "{{ prometheus_container_name }}"
+        image: prom/prometheus
+        restart_policy: always
+        restart: "{{ prometheus_config.changed | default(false) }}"
+        networks:
+          - name: "{{ network_name }}"
+        ports:
+          - "{{ prometheus_server_port }}:{{ prometheus_server_port }}"
+        volumes:
+          - "{{ prometheus_volume_name }}:/prometheus"
+          - "{{ prometheus_configuration_file }}:/etc/prometheus/prometheus.yml"
+
+    - name: Create a volume for Grafana
+      community.docker.docker_volume:
+        name: "{{ grafana_volume_name }}"
+
+    - name: Create a Grafana container
+      community.docker.docker_container:
+        name: "{{ grafana_container_name }}"
+        image: grafana/grafana
+        restart_policy: always
+        networks:
+          - name: "{{ network_name }}"
+        ports:
+          - "{{ grafana_port }}:{{ grafana_port }}"
+        volumes:
+          - "{{ grafana_volume_name }}:/var/lib/grafana"
+          - "{{ grafana_provisioning_folder }}:/etc/grafana/provisioning"

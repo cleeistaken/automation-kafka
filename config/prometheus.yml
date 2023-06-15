@@ -1,0 +1,88 @@
+# my global config
+global:
+  scrape_interval: 15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+
+  - job_name: "prometheus"
+    static_configs:
+      - targets: [ "localhost:9090" ]
+
+  - job_name: "node-exporter"
+    static_configs:
+      - targets:
+          - "172.16.20.201:9100"
+          - "172.16.20.202:9100"
+          - "172.16.20.203:9100"
+          - "172.16.20.204:9100"
+          - "172.16.20.205:9100"
+          - "172.16.20.206:9100"
+          - "172.16.20.207:9100"
+          - "172.16.20.208:9100"
+          - "172.16.20.209:9100"
+          - "172.16.20.210:9100"
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: hostname
+        regex: '([^:]+)(:[0-9]+)?'
+        replacement: '${1}'
+
+  - job_name: "kafka-broker"
+    static_configs:
+      - targets:
+          - "172.16.20.202:8080"
+          - "172.16.20.203:8080"
+          - "172.16.20.204:8080"
+        labels:
+           env: "dev"
+    relabel_configs:
+      - source_labels: [ __address__ ]
+        target_label: hostname
+        regex: '([^:]+)(:[0-9]+)?'
+        replacement: '${1}'
+
+  - job_name: "zookeeper"
+    static_configs:
+      - targets:
+          - "172.16.20.205:8079"
+          - "172.16.20.206:8079"
+          - "172.16.20.207:8079"
+        labels:
+           env: "dev"
+    relabel_configs:
+      - source_labels: [ __address__ ]
+        target_label: hostname
+        regex: '([^:]+)(:[0-9]+)?'
+        replacement: '${1}'
+
+  - job_name: "kafka-connect"
+    static_configs:
+      - targets:
+          - "172.16.20.208:8077"
+          - "172.16.20.209:8077"
+          - "172.16.20.210:8077"
+        labels:
+          env: "dev"
+          kafka_connect_cluster_id: "cluster1"
+    relabel_configs:
+      - source_labels: [ __address__ ]
+        target_label: hostname
+        regex: '([^:]+)(:[0-9]+)?'
+        replacement: '${1}'
