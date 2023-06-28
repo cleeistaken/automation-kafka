@@ -1,13 +1,13 @@
 ---
-name: 400GB_RF3_30MB_S
+name: 600GB_RF3_MAX_32PT_6T_6P_6C_NONE
 
 # Topic Configuration
 # http://kafka.apache.org/documentation.html#topicconfigs
-partitions: 16
+partitions: 32
 replication_factor: 3
 retention_ms: 10800000             # 3 hours
 min_insync_replicas: 2             # Minimum number of replicas that must acknowledge a write to be considered successful.
-num_topics: 4
+num_topics: 6
 
 # Producer Configuration
 # http://kafka.apache.org/documentation.html#producerconfigs
@@ -16,12 +16,12 @@ buffer_memory: 67108864            # 64MB
 batch_size: 64000
 compression_type: "none"           # No producer compression
 record_size: 1024                  # 1KB
-throughput: 307200                 # 1KB * 1024 + 300 = 300MB/sec
-num_records_producer: 100000000    # 100000000 msg x  1024 bytes/msg = ~96GB
-num_producers: 4                   # ~96GB x 4 = ~400GB * RF 3 = 1.2TB
+throughput: -1                     # 30MB/s
+num_records_producer: 100000000    # 100000000 msg x  1024 bytes/msg = ~100GB
+num_producers: 6                   # ~100GB x 6 = ~600GB * RF 3 = 1.8TB
 
 # Consumer Configuration
 # http://kafka.apache.org/documentation.html#consumerconfigs
-num_records_consumer: 100000000
+num_records_consumer: 50000000
 show_detailed_stats: True
-num_consumers: 4
+num_consumers: 6

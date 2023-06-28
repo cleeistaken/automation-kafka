@@ -28,7 +28,7 @@ class KafkaTestRunner:
 
         # This will be used to create the tests sub-folder
         self.test_epoch = int(time.time())
-        self.result_folder = pathlib.Path(results_folder, f"{str(self.test_epoch)}-kafka")
+        self.result_folder = pathlib.Path(results_folder, f"kafka-{str(self.test_epoch)}")
         self.result_folder.mkdir(parents=True, exist_ok=False)
 
         # This assumes our current file structure. This should be generalized
@@ -123,6 +123,9 @@ class KafkaTestRunner:
             kafka_consumer_results = KafkaTopicResult(result=res)
             kafka_consumer_results.save_completed_process(folder=test_result_folder, filename=topic.name)
 
+        print("Waiting 3 minutes")
+        time.sleep(180)
+
         print("Running producers.")
         commands = [x.test_command() for x in test.get_producers()]
         results = self.run_commands(servers=self.inventory.kafka_connects, commands=commands)
@@ -133,6 +136,9 @@ class KafkaTestRunner:
 
         print("Generating producer plots.")
         kafka_producer_results.create_plots(folder=test_result_folder, file_prefix="producer")
+
+        print("Waiting 3 minutes")
+        time.sleep(180)
 
         print("Running consumers.")
         commands = [x.test_command() for x in test.get_consumers()]
@@ -150,6 +156,9 @@ class KafkaTestRunner:
 
             print(f"Deleting topic {topic.name}")
             self.run_command(self.inventory.kafka_connects[0], topic.delete_command())
+
+        print("Waiting 5 minutes")
+        time.sleep(300)
 
         print(f"Test {test.name} complete")
 

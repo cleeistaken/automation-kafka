@@ -1,5 +1,8 @@
 ### OSX ###
 .DS_Store
 
+# Pipenv
+Pipfile.lock
+
 ### Jetbrains ###
 .idea

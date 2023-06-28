@@ -1,17 +1,17 @@
 ---
-name: 600GB_RF3_MAX_16PT_6T_6P_6C_NONE
+name: 600GB_RF3_MAX_64PT_6T_6P_6C_NONE_ACKS1_RF3
 
 # Topic Configuration
 # http://kafka.apache.org/documentation.html#topicconfigs
-partitions: 16
-replication_factor: 3
+partitions: 64 
+replication_factor: 3 
 retention_ms: 10800000             # 3 hours
 min_insync_replicas: 2             # Minimum number of replicas that must acknowledge a write to be considered successful.
 num_topics: 6
 
 # Producer Configuration
 # http://kafka.apache.org/documentation.html#producerconfigs
-acks: all                          # This means the leader will wait for the full set of in-sync replicas to acknowledge the record.
+acks: 1                            # This means the leader will wait for the full set of in-sync replicas to acknowledge the record.
 buffer_memory: 67108864            # 64MB
 batch_size: 64000
 compression_type: "none"           # No producer compression
