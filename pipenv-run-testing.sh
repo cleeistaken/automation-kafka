@@ -12,10 +12,17 @@ pipenv run python kafka-testing/main.py \
 	 --results /opt/automation/automation-templates/data/results \
 	 --tests ./config/tests/test-01.yml \
 	         ./config/tests/test-02.yml \
-		 ./config/tests/test-03.yml \
-		 ./config/tests/test-04.yml \
-		 ./config/tests/test-05.yml \
-		 ./config/tests/test-06.yml \
-		 ./config/tests/test-07.yml
+	         ./config/tests/test-03.yml \
+	         ./config/tests/test-04.yml \
+	         ./config/tests/test-05.yml \
+	         ./config/tests/test-06.yml \
+	         ./config/tests/test-07.yml \
+	         ./config/tests/test-08.yml \
+	         ./config/tests/test-09.yml \
+	         ./config/tests/test-10.yml \
+	         ./config/tests/test-11.yml \
+	         ./config/tests/test-12.yml \
+	         ./config/tests/test-13.yml \
+
 
 echo "Testing complete"
