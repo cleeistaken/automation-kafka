@@ -100,7 +100,7 @@ class KafkaTestRunner:
     def _run_test(self, test: KafkaTest) -> Tuple[KafkaProducerResult, KafkaConsumerResult]:
 
         test_time = int(time.time())
-        test_result_folder = self.result_folder.joinpath(f"{test.name}-{str(test_time)}")
+        test_result_folder = self.result_folder.joinpath(f"{str(test_time)}-{test.name}")
 
         print("Killing any existing producers")
         for connect in self.inventory.kafka_connects:
