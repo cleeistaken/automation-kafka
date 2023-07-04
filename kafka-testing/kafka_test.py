@@ -33,6 +33,7 @@ class KafkaTest:
         self.retention_ms = data.get("retention_ms")
         self.min_insync_replicas = data.get("min_insync_replicas")
         self.num_topics = data.get("num_topics")
+        self.topic_compression_type = data.get("topic_compression_type")
 
         # Producer Configuration
         self.acks = data.get("acks")
@@ -70,7 +71,8 @@ class KafkaTest:
                            partitions=self.partitions,
                            replication_factor=self.replication_factor,
                            retention_ms=self.retention_ms,
-                           min_insync_replicas=self.min_insync_replicas)
+                           min_insync_replicas=self.min_insync_replicas,
+                           compression_type=self.topic_compression_type)
                 for topic_num in range(self.num_topics)]
 
     def get_producers(self) -> List[KafkaProducer]:
