@@ -35,7 +35,7 @@ class KafkaTopic(KafkaCommand):
                             f"--config min.insync.replicas={self.min_insync_replicas}"])
 
         if self.compression_type:
-            command = f"{command} --config compression_type={self.compression_type}"
+            command = f"{command} --config compression.type={self.compression_type}"
 
         return command
 

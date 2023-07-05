@@ -8,7 +8,7 @@ replication_factor: 3
 retention_ms: 10800000             # 3 hours
 min_insync_replicas: 2             # Minimum number of replicas that must acknowledge a write to be considered successful.
 num_topics: 6
-topic_compression_type: gzip
+topic_compression_type: gzip       # gzip, snappy, lz4, zstd, or commented out for none
 
 # Producer Configuration
 # http://kafka.apache.org/documentation.html#producerconfigs
