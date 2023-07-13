@@ -35,7 +35,7 @@ class KafkaProducer(KafkaCommand):
 
     @compression_type.setter
     def compression_type(self, value: str):
-        valid_types = ["none", "lz4", "gzip", "snappy"]
+        valid_types = ["none", "lz4", "gzip", "snappy", "zstd"]
         if value not in valid_types:
             raise ValueError(f"Invalid compression type {value} not in valid types ({','.join(valid_types)}).")
         self._compression_type = value
